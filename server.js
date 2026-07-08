@@ -188,6 +188,23 @@ app.get('/api/users/teachers', async (req, res) => {
 });
 
 // ============================================
+// ADMIN - GET ALL USERS
+// ============================================
+app.get('/api/users/all', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT id, username, email, full_name, role, is_active
+            FROM users 
+            ORDER BY id
+        `);
+        res.json({ success: true, users: result.rows });
+    } catch (error) {
+        console.error('❌ Error fetching users:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// ============================================
 // ADMIN - DELETE USER
 // ============================================
 app.delete('/api/users/:id', async (req, res) => {
@@ -272,6 +289,59 @@ app.get('/api/admin/stats', async (req, res) => {
 });
 
 // ============================================
+// STUDENT - GET MY COURSES
+// ============================================
+app.get('/api/users/:id/courses', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(`
+            SELECT 
+                c.id, c.name as course_code, c.name as course_name, c.section,
+                u.full_name as teacher_name,
+                COUNT(a.id) as total_classes,
+                COUNT(a.id) FILTER (WHERE a.status = 'present') as present_count,
+                COUNT(a.id) FILTER (WHERE a.status = 'absent') as absent_count,
+                COUNT(a.id) FILTER (WHERE a.status = 'late') as late_count,
+                ROUND(CAST(COUNT(a.id) FILTER (WHERE a.status IN ('present', 'late')) AS DECIMAL) / NULLIF(COUNT(a.id), 0) * 100, 2) as attendance_percentage
+            FROM classes c
+            JOIN enrollments e ON c.id = e.course_id
+            LEFT JOIN users u ON c.teacher_id = u.id
+            LEFT JOIN attendance a ON a.class_id = c.id AND a.student_id = $1
+            WHERE e.student_id = $1 AND e.status = 'active'
+            GROUP BY c.id, u.full_name
+            ORDER BY c.name
+        `, [id]);
+        res.json({ success: true, courses: result.rows });
+    } catch (error) {
+        console.error('❌ Error fetching student courses:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// ============================================
+// STUDENT - GET MY ATTENDANCE
+// ============================================
+app.get('/api/attendance/student/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(`
+            SELECT 
+                a.*,
+                c.name as course_name,
+                c.section as course_section
+            FROM attendance a
+            JOIN classes c ON a.class_id = c.id
+            WHERE a.student_id = $1
+            ORDER BY a.date DESC
+        `, [id]);
+        res.json({ success: true, attendance: result.rows });
+    } catch (error) {
+        console.error('❌ Error fetching student attendance:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// ============================================
 // TEACHER - GET STUDENTS
 // ============================================
 app.get('/api/teacher/students', async (req, res) => {
@@ -283,23 +353,11 @@ app.get('/api/teacher/students', async (req, res) => {
 
         const result = await pool.query(`
             SELECT DISTINCT 
-                u.id, 
-                u.username, 
-                u.email, 
-                u.full_name,
-                u.role,
-                u.is_active,
-                c.id as class_id, 
-                c.name as class_name, 
-                c.section as class_section,
-                u.entry_year, 
-                u.semester,
-                u.department
+                u.id, u.username, u.email, u.full_name,
+                c.id as class_id, c.name as class_name, c.section as class_section
             FROM users u
             JOIN classes c ON u.class_id = c.id
-            WHERE c.teacher_id = $1 
-            AND u.role = 'student' 
-            AND u.is_active = true
+            WHERE c.teacher_id = $1 AND u.role = 'student' AND u.is_active = true
             ORDER BY u.full_name
         `, [teacherId]);
 
@@ -339,11 +397,39 @@ app.get('/api/teacher/classes', async (req, res) => {
 });
 
 // ============================================
+// TEACHER - GET ATTENDANCE (FIXED - THIS WAS MISSING!)
+// ============================================
+app.get('/api/attendance/teacher/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const result = await pool.query(`
+            SELECT 
+                a.*,
+                u.full_name as student_name,
+                c.name as course_name,
+                c.section as course_section
+            FROM attendance a
+            JOIN users u ON a.student_id = u.id
+            JOIN classes c ON a.class_id = c.id
+            WHERE c.teacher_id = $1
+            ORDER BY a.date DESC
+            LIMIT 100
+        `, [id]);
+
+        res.json({ success: true, attendance: result.rows });
+    } catch (error) {
+        console.error('❌ Error fetching teacher attendance:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// ============================================
 // MARK ATTENDANCE
 // ============================================
 app.post('/api/attendance/mark', async (req, res) => {
     try {
-        const { student_id, status, date } = req.body;
+        const { student_id, status, date, check_in_time } = req.body;
         const today = date || new Date().toISOString().split('T')[0];
 
         const studentResult = await pool.query(
@@ -361,40 +447,16 @@ app.post('/api/attendance/mark', async (req, res) => {
         }
 
         const result = await pool.query(`
-            INSERT INTO attendance (student_id, class_id, date, status)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO attendance (student_id, class_id, date, status, check_in_time)
+            VALUES ($1, $2, $3, $4, $5)
             ON CONFLICT (student_id, class_id, date) 
-            DO UPDATE SET status = $4
+            DO UPDATE SET status = $4, check_in_time = COALESCE($5, check_in_time)
             RETURNING *
-        `, [student_id, classId, today, status]);
+        `, [student_id, classId, today, status, check_in_time || null]);
 
         res.json({ success: true, message: 'Attendance marked', attendance: result.rows[0] });
     } catch (error) {
         console.error('❌ Error marking attendance:', error);
-        res.status(500).json({ success: false, message: error.message });
-    }
-});
-
-// ============================================
-// GET STUDENT ATTENDANCE
-// ============================================
-app.get('/api/attendance/student/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await pool.query(`
-            SELECT 
-                a.*,
-                c.name as class_name,
-                c.section as class_section
-            FROM attendance a
-            JOIN classes c ON a.class_id = c.id
-            WHERE a.student_id = $1
-            ORDER BY a.date DESC
-        `, [id]);
-
-        res.json({ success: true, attendance: result.rows });
-    } catch (error) {
-        console.error('❌ Error fetching student attendance:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -427,5 +489,6 @@ app.listen(PORT, () => {
     console.log('  📝 Register: http://localhost:5001/register.html');
     console.log('  🔧 Admin: http://localhost:5001/adminhome.html');
     console.log('  👨‍🏫 Teacher: http://localhost:5001/teacherhome.html');
+    console.log('  👨‍🎓 Student: http://localhost:5001/studenthome.html');
     console.log('========================================\n');
 });

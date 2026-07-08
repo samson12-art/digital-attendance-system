@@ -1,77 +1,1538 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #0a0a1a; color: white; }
-        nav { background: #1a1a2e; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); }
-        .logo { font-size: 20px; font-weight: 700; }
-        .logo span { color: #4F46E5; }
-        .user-info { display: flex; align-items: center; gap: 16px; }
-        .logout-btn { padding: 8px 16px; background: rgba(239,68,68,0.15); color: #EF4444; border: none; border-radius: 6px; cursor: pointer; }
-        .container { padding: 24px; max-width: 1200px; margin: 0 auto; }
-        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: #1a1a2e; padding: 20px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.06); }
-        .stat-number { font-size: 32px; font-weight: 700; color: #4F46E5; }
-        .stat-label { color: #94a3b8; }
-        .card { background: #1a1a2e; padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 20px; }
-        .card h3 { color: #4F46E5; margin-bottom: 12px; }
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-hover: #1a2744;
+            --bg-sidebar: rgba(15,15,26,0.98);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: rgba(255,255,255,0.06);
+            --shadow: 0 4px 24px rgba(0,0,0,0.3);
+            --shadow-lg: 0 8px 40px rgba(0,0,0,0.4);
+            --primary: #4F46E5;
+            --success: #22C55E;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --sidebar-width: 250px;
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+        body.light-mode {
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-hover: #f8fafc;
+            --bg-sidebar: rgba(255,255,255,0.98);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: rgba(0,0,0,0.06);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            transition: var(--transition);
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+            transition: var(--transition);
+            backdrop-filter: blur(20px);
+            overflow-y: auto;
+        }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .sidebar-logo .logo-icon { font-size: 28px; }
+        .sidebar-logo .logo-text { font-weight: 800; font-size: 18px; }
+        .sidebar-logo .logo-text span { color: var(--primary); }
+        .sidebar-logo .logo-badge {
+            font-size: 9px;
+            background: var(--primary);
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-left: auto;
+            font-weight: 600;
+        }
+        .sidebar-nav { flex: 1; padding: 16px 12px; }
+        .nav-section { margin-bottom: 20px; }
+        .nav-label {
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-muted);
+            padding: 0 12px 8px;
+            font-weight: 600;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            margin-bottom: 2px;
+        }
+        .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .nav-item.active { background: rgba(79,70,229,0.12); color: var(--primary); }
+        .nav-item i { width: 22px; text-align: center; font-size: 16px; }
+        .nav-item .nav-badge {
+            margin-left: auto;
+            background: var(--danger);
+            color: #fff;
+            font-size: 9px;
+            padding: 1px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .sidebar-footer {
+            padding: 16px 16px 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sidebar-user .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #7C3AED);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 15px;
+            color: #fff;
+        }
+        .sidebar-user .user-info { flex: 1; }
+        .sidebar-user .user-info .name { font-size: 14px; font-weight: 600; }
+        .sidebar-user .user-info .role { font-size: 11px; color: var(--text-muted); }
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            height: 64px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(12px);
+            transition: var(--transition);
+        }
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .topbar-left .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .topbar-left .page-title { font-size: 20px; font-weight: 700; }
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .topbar-right .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 6px 16px;
+            transition: var(--transition);
+        }
+        .topbar-right .search-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+        }
+        .topbar-right .search-box input {
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 13px;
+            width: 160px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .topbar-right .search-box input::placeholder { color: var(--text-muted); }
+        .topbar-right .search-box i { color: var(--text-muted); }
+        .topbar-right .date-time {
+            color: var(--text-muted);
+            font-size: 13px;
+            background: var(--bg-card);
+            padding: 6px 16px;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+        }
+        .theme-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+        .theme-toggle:hover {
+            background: var(--bg-hover);
+            transform: rotate(15deg);
+        }
+        .dashboard-content {
+            padding: 24px 28px;
+            flex: 1;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .page-header h2 { font-size: 24px; font-weight: 700; }
+        .page-header .subtitle { color: var(--text-secondary); font-size: 14px; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            padding: 18px 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        .stat-card .number { font-size: 28px; font-weight: 700; }
+        .stat-card .label { color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
+        .stat-card .number.green { color: var(--success); }
+        .stat-card .number.red { color: var(--danger); }
+        .stat-card .number.blue { color: var(--primary); }
+        .stat-card .number.yellow { color: var(--warning); }
+        .stat-card .number.purple { color: #8B5CF6; }
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #6366F1; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(79,70,229,0.3); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #16A34A; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #DC2626; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-warning:hover { background: #D97706; }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+        .btn-outline:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .btn-sm { padding: 4px 12px; font-size: 11px; }
+        .btn-xs { padding: 2px 8px; font-size: 10px; border-radius: 4px; }
+        .table-container {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: var(--transition);
+            display: none;
+        }
+        .table-container.active { display: block; }
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .table-header h3 { font-size: 16px; font-weight: 600; }
+        .table-header .total { color: var(--text-secondary); font-size: 14px; }
+        .table-wrapper { overflow-x: auto; padding: 0 4px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        table th { text-align: left; padding: 10px; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.06); }
-        table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
-        .badge { padding: 2px 10px; border-radius: 20px; font-size: 11px; }
-        .badge-present { background: rgba(34,197,94,0.15); color: #22C55E; }
-        .badge-absent { background: rgba(239,68,68,0.15); color: #EF4444; }
-        .badge-late { background: rgba(245,158,11,0.15); color: #F59E0B; }
-        .empty { text-align: center; padding: 40px; color: #94a3b8; }
-        .student-badge { background: #4F46E5; padding: 2px 12px; border-radius: 20px; font-size: 11px; }
-        .progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 8px; overflow: hidden; }
-        .progress-bar .fill { height: 100%; border-radius: 4px; }
-        .fill-high { background: #22C55E; }
-        .fill-medium { background: #F59E0B; }
-        .fill-low { background: #EF4444; }
+        table thead { background: var(--bg-hover); }
+        table th {
+            text-align: left;
+            padding: 12px 16px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+        table tr:hover td { background: var(--bg-hover); }
+        .badge {
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .badge-active { background: rgba(34,197,94,0.15); color: var(--success); }
+        .badge-inactive { background: rgba(239,68,68,0.15); color: var(--danger); }
+        .badge-present { background: rgba(34,197,94,0.15); color: var(--success); }
+        .badge-absent { background: rgba(239,68,68,0.15); color: var(--danger); }
+        .badge-late { background: rgba(245,158,11,0.15); color: var(--warning); }
+        .class-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            background: rgba(79,70,229,0.12);
+            color: var(--primary);
+        }
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            border-top: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .pagination .info { color: var(--text-secondary); font-size: 13px; }
+        .pagination .pages { display: flex; gap: 4px; flex-wrap: wrap; }
+        .pagination .pages button {
+            padding: 6px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 13px;
+        }
+        .pagination .pages button:hover,
+        .pagination .pages button.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .pagination .pages button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .empty { text-align: center; padding: 40px; color: var(--text-secondary); }
+        .empty .icon { font-size: 48px; display: block; margin-bottom: 12px; }
+        .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-overlay .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 32px;
+            max-width: 580px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+            box-shadow: var(--shadow-lg);
+        }
+        .modal-overlay .modal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .modal-overlay .modal .modal-header h2 { font-size: 20px; font-weight: 700; }
+        .modal-overlay .modal .modal-header .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .modal-overlay .modal .modal-header .close-btn:hover {
+            color: var(--text-primary);
+            transform: rotate(90deg);
+        }
+        .modal-overlay .modal .form-group { margin-bottom: 16px; }
+        .modal-overlay .modal .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .modal-overlay .modal .form-group label .required { color: var(--danger); margin-left: 2px; }
+        .modal-overlay .modal .form-group input,
+        .modal-overlay .modal .form-group select,
+        .modal-overlay .modal .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: 'Segoe UI', sans-serif;
+            outline: none;
+            transition: var(--transition);
+        }
+        .modal-overlay .modal .form-group input:focus,
+        .modal-overlay .modal .form-group select:focus,
+        .modal-overlay .modal .form-group textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+        }
+        .modal-overlay .modal .form-group select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        .modal-overlay .modal .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .modal-overlay .modal .form-actions .btn { flex: 1; justify-content: center; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .page-container {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            margin-top: 16px;
+            display: none;
+        }
+        .page-container.active { display: block; }
+        .page-container h3 { margin-bottom: 16px; color: var(--primary); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .fill-high { background: var(--success); }
+        .fill-medium { background: var(--warning); }
+        .fill-low { background: var(--danger); }
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .events-grid .event-card {
+            background: var(--bg-hover);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+        .events-grid .event-card:hover { border-color: var(--primary); }
+        .events-grid .event-card .event-time {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .events-grid .event-card .event-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 8px 0;
+        }
+        .events-grid .event-card .event-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .report-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .report-cards .report-card {
+            background: var(--bg-hover);
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .report-cards .report-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .report-cards .report-card .number { font-size: 32px; font-weight: 700; }
+        .report-cards .report-card .label { font-size: 13px; color: var(--text-secondary); }
+        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 280px; }
+            .sidebar.open { transform: translateX(0); }
+            .topbar-left .menu-toggle { display: block; }
+            .main-content { margin-left: 0; }
+            .topbar { padding: 0 16px; flex-wrap: wrap; height: auto; padding: 10px 16px; }
+            .topbar-right { flex-wrap: wrap; gap: 8px; }
+            .topbar-right .search-box input { width: 100px; }
+            .topbar-right .date-time { display: none; }
+            .dashboard-content { padding: 16px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .form-row { grid-template-columns: 1fr; }
+            .events-grid { grid-template-columns: 1fr; }
+            .report-cards { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .table-header { flex-direction: column; align-items: flex-start; }
+            .pagination { flex-direction: column; align-items: center; }
+            .report-cards { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
-    <nav>
-        <div class="logo">📚 Digital <span>Attendance</span></div>
-        <div class="user-info">
-            <span id="studentName">Student</span>
-            <span class="student-badge">👨‍🎓 Student</span>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <span class="logo-icon">📚</span>
+            <div class="logo-text">Digital <span>Attendance</span></div>
+            <span class="logo-badge">Student</span>
         </div>
-    </nav>
-    <div class="container">
-        <h1>👨‍🎓 Student Dashboard</h1>
-        <p style="color: #94a3b8; margin-bottom: 20px;">Track your attendance and courses</p>
-        <div class="stats-grid">
-            <div class="stat-card"><div class="stat-number">4</div><div class="stat-label">Enrolled Courses</div></div>
-            <div class="stat-card"><div class="stat-number">85%</div><div class="stat-label">Overall Attendance</div></div>
-        </div>
-        <div class="card">
-            <h3>📋 My Attendance</h3>
-            <table>
-                <tr><th>Course</th><th>Date</th><th>Status</th></tr>
-                <tr><td>CS101</td><td>2024-01-15</td><td><span class="badge badge-present">Present</span></td></tr>
-                <tr><td>CS101</td><td>2024-01-14</td><td><span class="badge badge-present">Present</span></td></tr>
-                <tr><td>CS102</td><td>2024-01-13</td><td><span class="badge badge-absent">Absent</span></td></tr>
-                <tr><td>CS101</td><td>2024-01-12</td><td><span class="badge badge-present">Present</span></td></tr>
-                <tr><td>CS102</td><td>2024-01-11</td><td><span class="badge badge-late">Late</span></td></tr>
-            </table>
-            <div style="margin-top:12px;">
-                <div style="display:flex;justify-content:space-between;font-size:13px;color:#94a3b8;">
-                    <span>Overall Attendance: <strong style="color:#22C55E;">85%</strong></span>
-                    <span>Present: 12 | Absent: 2 | Late: 1</span>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <span class="nav-label">Main Menu</span>
+                <button class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
+                    <i class="fas fa-home"></i> Home
+                </button>
+                <button class="nav-item" data-page="users" onclick="switchPage('users')">
+                    <i class="fas fa-users"></i> Users
+                </button>
+                <button class="nav-item" data-page="courses" onclick="switchPage('courses')">
+                    <i class="fas fa-book"></i> Courses
+                    <span class="nav-badge" id="courseBadge">0</span>
+                </button>
+                <button class="nav-item" data-page="events" onclick="switchPage('events')">
+                    <i class="fas fa-calendar-alt"></i> Events
+                </button>
+                <button class="nav-item" data-page="attendance" onclick="switchPage('attendance')">
+                    <i class="fas fa-clipboard-check"></i> Attendance
+                    <span class="nav-badge" id="attendanceBadge">0</span>
+                </button>
+                <button class="nav-item" data-page="reports" onclick="switchPage('reports')">
+                    <i class="fas fa-chart-bar"></i> Reports
+                </button>
+                <button class="nav-item" data-page="analytics" onclick="switchPage('analytics')">
+                    <i class="fas fa-chart-pie"></i> Analytics
+                </button>
+            </div>
+            <div class="nav-section">
+                <span class="nav-label">Other</span>
+                <button class="nav-item" data-page="profile" onclick="switchPage('profile')">
+                    <i class="fas fa-user"></i> Profile
+                </button>
+                <button class="nav-item" data-page="settings" onclick="switchPage('settings')">
+                    <i class="fas fa-cog"></i> Settings
+                </button>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="avatar" id="userAvatar">S</div>
+                <div class="user-info">
+                    <div class="name" id="userName">Student</div>
+                    <div class="role">👨‍🎓 Student</div>
                 </div>
-                <div class="progress-bar"><div class="fill fill-high" style="width:85%;"></div></div>
+                <button class="btn btn-danger btn-sm" onclick="confirmLogout()" style="padding:4px 12px;">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
             </div>
         </div>
-    </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="menu-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title" id="pageTitle">Student Dashboard</h1>
+            </div>
+            <div class="topbar-right">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search..." oninput="searchData()">
+                </div>
+                <span class="date-time" id="dateTime"></span>
+                <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="dashboard-content" id="dashboardContent">
+
+            <!-- ===== PAGE HEADER ===== -->
+            <div class="page-header">
+                <div>
+                    <h2 id="pageHeader">👨‍🎓 Welcome, <span id="studentName">Student</span>!</h2>
+                    <p class="subtitle" id="pageSubtitle">Track your attendance and courses</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline" onclick="loadData()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- ===== STATS ===== -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="number blue" id="totalCourses">0</div>
+                    <div class="label">📚 Enrolled Courses</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number green" id="totalPresent">0</div>
+                    <div class="label">✅ Present</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number red" id="totalAbsent">0</div>
+                    <div class="label">❌ Absent</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number purple" id="attendanceRate">0%</div>
+                    <div class="label">📊 Attendance Rate</div>
+                </div>
+            </div>
+
+            <!-- ===== COURSES TABLE ===== -->
+            <div class="table-container active" id="coursesTable">
+                <div class="table-header">
+                    <h3>📋 My Courses</h3>
+                    <span class="total">Total: <strong id="courseTotalCount">0</strong> courses</span>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Course Code</th>
+                                <th>Course Name</th>
+                                <th>Section</th>
+                                <th>Teacher</th>
+                                <th>Attendance</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coursesTableBody">
+                            <tr>
+                                <td colspan="7">
+                                    <div class="loading"><div class="spinner"></div> Loading courses...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ===== USERS PAGE ===== -->
+            <div class="page-container" id="usersPage">
+                <h3>👥 Users</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">View all users in the system</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Username</th>
+                                <th>Full Name</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="5">
+                                    <div class="loading"><div class="spinner"></div> Loading users...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn btn-primary" onclick="switchPage('dashboard')" style="margin-top: 16px;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </button>
+            </div>
+
+            <!-- ===== EVENTS PAGE ===== -->
+            <div class="page-container" id="eventsPage">
+                <h3>📅 Events</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">Upcoming events and activities</p>
+                <div class="events-grid" id="eventsGrid">
+                    <div class="event-card">
+                        <div class="event-time">📅 15 min ago</div>
+                        <div class="event-title">🎓 Orientation Day</div>
+                        <div class="event-desc">Welcome new students to the campus</div>
+                    </div>
+                    <div class="event-card">
+                        <div class="event-time">📅 1 hour ago</div>
+                        <div class="event-title">📚 Library Workshop</div>
+                        <div class="event-desc">Learn how to use the digital library</div>
+                    </div>
+                    <div class="event-card">
+                        <div class="event-time">📅 2 hours ago</div>
+                        <div class="event-title">💻 Coding Competition</div>
+                        <div class="event-desc">Annual programming contest</div>
+                    </div>
+                    <div class="event-card">
+                        <div class="event-time">📅 3 hours ago</div>
+                        <div class="event-title">🏆 Sports Day</div>
+                        <div class="event-desc">Inter-department sports competition</div>
+                    </div>
+                    <div class="event-card">
+                        <div class="event-time">📅 4 hours ago</div>
+                        <div class="event-title">🎵 Cultural Festival</div>
+                        <div class="event-desc">Music, dance, and cultural performances</div>
+                    </div>
+                    <div class="event-card">
+                        <div class="event-time">📅 5 hours ago</div>
+                        <div class="event-title">📝 Exam Schedule</div>
+                        <div class="event-desc">Final exam timetable released</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="switchPage('dashboard')" style="margin-top: 16px;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </button>
+            </div>
+
+            <!-- ===== ATTENDANCE TABLE ===== -->
+            <div class="table-container" id="attendanceTable">
+                <div class="table-header">
+                    <h3>📋 Attendance History</h3>
+                    <span class="total">Total: <strong id="attendanceTotalCount">0</strong> records</span>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Date</th>
+                                <th>Course</th>
+                                <th>Status</th>
+                                <th>Check In</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody">
+                            <tr>
+                                <td colspan="5">
+                                    <div class="loading"><div class="spinner"></div> Loading attendance...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <span class="info" id="attendancePaginationInfo">Showing 0-0 of 0</span>
+                    <div class="pages" id="attendancePaginationButtons">
+                        <button onclick="changeAttendancePage('prev')" id="attendancePrevBtn">‹</button>
+                        <button class="active" id="attendancePage1">1</button>
+                        <button onclick="changeAttendancePage('next')" id="attendanceNextBtn">›</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== REPORTS PAGE ===== -->
+            <div class="page-container" id="reportsPage">
+                <h3>📊 Reports</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">Generate and view reports</p>
+                <div class="report-cards">
+                    <div class="report-card" onclick="generateReport('attendance')">
+                        <div class="number">📋</div>
+                        <div class="label">Attendance Report</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Click to generate</div>
+                    </div>
+                    <div class="report-card" onclick="generateReport('courses')">
+                        <div class="number">📚</div>
+                        <div class="label">Course Report</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Click to generate</div>
+                    </div>
+                    <div class="report-card" onclick="generateReport('performance')">
+                        <div class="number">📈</div>
+                        <div class="label">Performance Report</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Click to generate</div>
+                    </div>
+                    <div class="report-card" onclick="generateReport('full')">
+                        <div class="number">📊</div>
+                        <div class="label">Full Report</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Click to generate</div>
+                    </div>
+                </div>
+                <pre id="reportData" style="color: var(--text-secondary); font-family: monospace; white-space: pre-wrap; background: var(--bg-primary); padding: 16px; border-radius: var(--radius-sm); margin-top: 16px; display: none;"></pre>
+                <button class="btn btn-primary" onclick="switchPage('dashboard')" style="margin-top: 16px;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </button>
+            </div>
+
+            <!-- ===== ANALYTICS PAGE ===== -->
+            <div class="page-container" id="analyticsPage">
+                <h3>📈 Analytics</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">View your performance analytics</p>
+                <div class="stats-grid" style="margin-bottom: 16px;">
+                    <div class="stat-card">
+                        <div class="number green" id="analyticsPresent">0</div>
+                        <div class="label">✅ Present</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number red" id="analyticsAbsent">0</div>
+                        <div class="label">❌ Absent</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number yellow" id="analyticsLate">0</div>
+                        <div class="label">⏰ Late</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number purple" id="analyticsRate">0%</div>
+                        <div class="label">📊 Rate</div>
+                    </div>
+                </div>
+                <div style="background: var(--bg-hover); padding: 20px; border-radius: var(--radius-sm);">
+                    <h4 style="margin-bottom: 12px;">📊 Attendance Overview</h4>
+                    <div id="analyticsChart" style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 150px;">
+                            <div class="stat-card" style="background: var(--bg-card);">
+                                <div class="number green" id="chartPresent">0%</div>
+                                <div class="label">Present</div>
+                                <div class="progress-bar"><div class="fill fill-high" id="chartPresentBar" style="width: 0%;"></div></div>
+                            </div>
+                        </div>
+                        <div style="flex: 1; min-width: 150px;">
+                            <div class="stat-card" style="background: var(--bg-card);">
+                                <div class="number red" id="chartAbsent">0%</div>
+                                <div class="label">Absent</div>
+                                <div class="progress-bar"><div class="fill fill-low" id="chartAbsentBar" style="width: 0%;"></div></div>
+                            </div>
+                        </div>
+                        <div style="flex: 1; min-width: 150px;">
+                            <div class="stat-card" style="background: var(--bg-card);">
+                                <div class="number yellow" id="chartLate">0%</div>
+                                <div class="label">Late</div>
+                                <div class="progress-bar"><div class="fill fill-medium" id="chartLateBar" style="width: 0%;"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="switchPage('dashboard')" style="margin-top: 16px;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </button>
+            </div>
+
+            <!-- ===== PROFILE PAGE ===== -->
+            <div class="page-container" id="profilePage">
+                <h3>👤 My Profile</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 600px;">
+                    <div class="stat-card">
+                        <div class="label" style="font-size: 12px; color: var(--text-muted);">Full Name</div>
+                        <div style="font-size: 18px; font-weight: 600;" id="profileFullName">Loading...</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label" style="font-size: 12px; color: var(--text-muted);">Username</div>
+                        <div style="font-size: 18px; font-weight: 600;" id="profileUsername">Loading...</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label" style="font-size: 12px; color: var(--text-muted);">Email</div>
+                        <div style="font-size: 18px; font-weight: 600;" id="profileEmail">Loading...</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label" style="font-size: 12px; color: var(--text-muted);">Role</div>
+                        <div style="font-size: 18px; font-weight: 600;" id="profileRole">Loading...</div>
+                    </div>
+                    <div class="stat-card" style="grid-column: span 2;">
+                        <div class="label" style="font-size: 12px; color: var(--text-muted);">Total Attendance</div>
+                        <div style="font-size: 18px; font-weight: 600;" id="profileAttendance">0%</div>
+                        <div class="progress-bar"><div class="fill fill-high" id="profileProgressBar" style="width: 0%;"></div></div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="switchPage('dashboard')" style="margin-top: 16px;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </button>
+            </div>
+
+            <!-- ===== SETTINGS PAGE ===== -->
+            <div class="page-container" id="settingsPage">
+                <h3>⚙️ Settings</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">System settings and preferences</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                    <div class="stat-card" onclick="toggleTheme()" style="cursor: pointer;">
+                        <div style="font-size: 24px;">🎨</div>
+                        <div class="label" style="font-size: 14px; font-weight: 600; margin-top: 8px;">Theme Settings</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">
+                            <span id="studentThemeLabel">Dark Mode</span>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); toggleTheme();">
+                                <i class="fas fa-moon" id="studentSettingsThemeIcon"></i> Toggle Theme
+                            </button>
+                        </div>
+                    </div>
+                    <div class="stat-card" onclick="showNotification('User profile loaded', 'success')" style="cursor: pointer;">
+                        <div style="font-size: 24px;">👤</div>
+                        <div class="label" style="font-size: 14px; font-weight: 600; margin-top: 8px;">My Profile</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">View profile details</div>
+                        <div style="margin-top: 10px;">
+                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); switchPage('profile');">
+                                <i class="fas fa-user"></i> View Profile
+                            </button>
+                        </div>
+                    </div>
+                    <div class="stat-card" onclick="showNotification('System info: v1.0.0', 'info')" style="cursor: pointer;">
+                        <div style="font-size: 24px;">ℹ️</div>
+                        <div class="label" style="font-size: 14px; font-weight: 600; margin-top: 8px;">System Info</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Version, logs</div>
+                        <div style="margin-top: 10px;">
+                            <button class="btn btn-info btn-sm" onclick="event.stopPropagation(); showNotification('System Info: v1.0.0', 'info');">
+                                <i class="fas fa-info-circle"></i> View Info
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="switchPage('dashboard')" style="margin-top: 16px;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </button>
+            </div>
+
+        </div>
+    </main>
+
     <script>
+        // ============================================
+        // STUDENT DASHBOARD - FULL DATABASE INTEGRATION
+        // ============================================
+
+        const API_URL = 'http://localhost:5001/api';
         const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        let studentCourses = [];
+        let studentAttendance = [];
+        let attendancePage = 1;
+        const attendancePageSize = 10;
+        let allUsers = [];
+
+        // ===== INIT =====
+        document.getElementById('userName').textContent = user.full_name || 'Student';
         document.getElementById('studentName').textContent = user.full_name || 'Student';
-        function logout() { if (confirm('Logout?')) { localStorage.clear(); window.location.href = '/login.html'; } }
+        document.getElementById('userAvatar').textContent = (user.full_name || 'S').charAt(0).toUpperCase();
+
+        // Profile data
+        document.getElementById('profileFullName').textContent = user.full_name || 'N/A';
+        document.getElementById('profileUsername').textContent = user.username || 'N/A';
+        document.getElementById('profileEmail').textContent = user.email || 'N/A';
+        document.getElementById('profileRole').textContent = user.role ? user.role.toUpperCase() : 'N/A';
+
+        if (!localStorage.getItem('token')) {
+            window.location.href = '/login.html';
+        }
+
+        // ===== THEME TOGGLE =====
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('themeIcon');
+            const settingsThemeIcon = document.getElementById('studentSettingsThemeIcon');
+            const themeLabel = document.getElementById('studentThemeLabel');
+
+            body.classList.toggle('light-mode');
+
+            if (body.classList.contains('light-mode')) {
+                themeIcon.className = 'fas fa-sun';
+                if (settingsThemeIcon) settingsThemeIcon.className = 'fas fa-sun';
+                if (themeLabel) themeLabel.textContent = 'Light Mode';
+                localStorage.setItem('theme', 'light');
+            } else {
+                themeIcon.className = 'fas fa-moon';
+                if (settingsThemeIcon) settingsThemeIcon.className = 'fas fa-moon';
+                if (themeLabel) themeLabel.textContent = 'Dark Mode';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('themeIcon');
+            const settingsThemeIcon = document.getElementById('studentSettingsThemeIcon');
+            const themeLabel = document.getElementById('studentThemeLabel');
+
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                if (themeIcon) themeIcon.className = 'fas fa-sun';
+                if (settingsThemeIcon) settingsThemeIcon.className = 'fas fa-sun';
+                if (themeLabel) themeLabel.textContent = 'Light Mode';
+            } else {
+                if (themeIcon) themeIcon.className = 'fas fa-moon';
+                if (settingsThemeIcon) settingsThemeIcon.className = 'fas fa-moon';
+                if (themeLabel) themeLabel.textContent = 'Dark Mode';
+            }
+        }
+        loadTheme();
+
+        // ===== DATE/TIME =====
+        function updateDateTime() {
+            const now = new Date();
+            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            document.getElementById('dateTime').textContent = now.toLocaleDateString('en-US', options);
+        }
+        updateDateTime();
+        setInterval(updateDateTime, 30000);
+
+        // ===== SIDEBAR =====
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // ===== PAGE SWITCHER =====
+        function switchPage(page) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => {
+                if (el.dataset.page === page) el.classList.add('active');
+            });
+            if (window.innerWidth <= 768) toggleSidebar();
+
+            document.querySelectorAll('.table-container').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.page-container').forEach(el => el.classList.remove('active'));
+
+            const statsGrid = document.getElementById('statsGrid');
+
+            if (page === 'dashboard') {
+                statsGrid.style.display = 'grid';
+                document.getElementById('pageTitle').textContent = 'Student Dashboard';
+                document.getElementById('pageHeader').textContent = '👨‍🎓 Welcome, ' + (user.full_name || 'Student') + '!';
+                document.getElementById('pageSubtitle').textContent = 'Track your attendance and courses';
+                document.getElementById('coursesTable').classList.add('active');
+                return;
+            }
+
+            statsGrid.style.display = 'none';
+
+            const titles = {
+                'users': '👥 Users',
+                'courses': '📚 My Courses',
+                'events': '📅 Events',
+                'attendance': '📋 Attendance History',
+                'reports': '📊 Reports',
+                'analytics': '📈 Analytics',
+                'profile': '👤 My Profile',
+                'settings': '⚙️ Settings'
+            };
+            const subtitles = {
+                'users': 'View all users in the system',
+                'courses': 'View all your enrolled courses and attendance',
+                'events': 'Upcoming events and activities',
+                'attendance': 'View your complete attendance history',
+                'reports': 'Generate and view reports',
+                'analytics': 'View your performance analytics',
+                'profile': 'Your personal information',
+                'settings': 'System settings and preferences'
+            };
+
+            document.getElementById('pageTitle').textContent = titles[page] || 'Student Dashboard';
+            document.getElementById('pageHeader').textContent = titles[page] || 'Student Dashboard';
+            document.getElementById('pageSubtitle').textContent = subtitles[page] || '';
+
+            if (page === 'courses') {
+                document.getElementById('coursesTable').classList.add('active');
+            } else if (page === 'users') {
+                document.getElementById('usersPage').classList.add('active');
+                loadUsers();
+            } else if (page === 'events') {
+                document.getElementById('eventsPage').classList.add('active');
+            } else if (page === 'attendance') {
+                document.getElementById('attendanceTable').classList.add('active');
+                loadAttendance();
+            } else if (page === 'reports') {
+                document.getElementById('reportsPage').classList.add('active');
+            } else if (page === 'analytics') {
+                document.getElementById('analyticsPage').classList.add('active');
+                loadAnalytics();
+            } else if (page === 'profile') {
+                document.getElementById('profilePage').classList.add('active');
+                loadProfileData();
+            } else if (page === 'settings') {
+                document.getElementById('settingsPage').classList.add('active');
+            }
+        }
+
+        // ===== API FETCH =====
+        async function fetchAPI(endpoint, options = {}) {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`${API_URL}${endpoint}`, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        ...options.headers
+                    }
+                });
+                return await res.json();
+            } catch (error) {
+                console.error('❌ Fetch error:', error);
+                return { success: false, message: error.message };
+            }
+        }
+
+        // ===== LOAD DATA =====
+        async function loadData() {
+            await loadCourses();
+            await loadAttendance();
+            updateStats();
+            updateBadges();
+        }
+
+        // ===== LOAD USERS =====
+        async function loadUsers() {
+            try {
+                const data = await fetchAPI('/users/all');
+                if (data.success) {
+                    allUsers = data.users || [];
+                    const tbody = document.getElementById('usersTableBody');
+                    if (allUsers.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><span class="icon">👥</span>No users found</div></td></tr>`;
+                        return;
+                    }
+                    tbody.innerHTML = allUsers.slice(0, 20).map((u, i) => `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td><strong>${u.username}</strong></td>
+                            <td>${u.full_name}</td>
+                            <td><span class="badge ${u.role === 'admin' ? 'badge-active' : u.role === 'teacher' ? 'badge-present' : 'badge-late'}">${u.role || 'N/A'}</span></td>
+                            <td><span class="badge ${u.is_active ? 'badge-active' : 'badge-inactive'}">${u.is_active ? 'Active' : 'Inactive'}</span></td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        // ===== LOAD COURSES =====
+        async function loadCourses() {
+            try {
+                const data = await fetchAPI(`/users/${user.id}/courses`);
+                if (data.success) {
+                    studentCourses = data.courses || [];
+                    renderCourses();
+                } else {
+                    document.getElementById('coursesTableBody').innerHTML = `
+                        <tr><td colspan="7"><div class="empty"><span class="icon">❌</span>${data.message || 'Failed to load courses'}</div></td></tr>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading courses:', error);
+                document.getElementById('coursesTableBody').innerHTML = `
+                    <tr><td colspan="7"><div class="empty"><span class="icon">❌</span>Error loading courses</div></td></tr>
+                `;
+            }
+        }
+
+        // ===== RENDER COURSES =====
+        function renderCourses() {
+            const tbody = document.getElementById('coursesTableBody');
+            const total = studentCourses.length;
+            document.getElementById('courseTotalCount').textContent = total;
+            document.getElementById('totalCourses').textContent = total;
+            document.getElementById('courseBadge').textContent = total;
+
+            if (total === 0) {
+                tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><span class="icon">📚</span>No courses enrolled</div></td></tr>`;
+                return;
+            }
+
+            let html = '';
+            studentCourses.forEach((c, index) => {
+                let attendancePercent = c.attendance_percentage !== undefined ? parseFloat(c.attendance_percentage) || 0 : 0;
+                let status = attendancePercent >= 75 ? 'Good' : attendancePercent >= 50 ? 'Needs Improvement' : 'At Risk';
+                let statusClass = attendancePercent >= 75 ? 'badge-active' : attendancePercent >= 50 ? 'badge-warning' : 'badge-inactive';
+
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${c.course_code || c.name || 'N/A'}</strong></td>
+                        <td>${c.course_name || c.name || 'N/A'}</td>
+                        <td><span class="class-badge">${c.section || 'N/A'}</span></td>
+                        <td>${c.teacher_name || 'Not Assigned'}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-weight: 600; font-size: 14px;">${attendancePercent}%</span>
+                                <div class="progress-bar" style="width: 100px;">
+                                    <div class="fill ${attendancePercent >= 75 ? 'fill-high' : attendancePercent >= 50 ? 'fill-medium' : 'fill-low'}" style="width: ${attendancePercent}%;"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge ${statusClass}">${status}</span></td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // ===== LOAD ATTENDANCE =====
+        async function loadAttendance() {
+            try {
+                const data = await fetchAPI(`/attendance/student/${user.id}`);
+                if (data.success) {
+                    studentAttendance = data.attendance || [];
+                    renderAttendance();
+                } else {
+                    document.getElementById('attendanceTableBody').innerHTML = `
+                        <tr><td colspan="5"><div class="empty"><span class="icon">❌</span>${data.message || 'Failed to load attendance'}</div></td></tr>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading attendance:', error);
+                document.getElementById('attendanceTableBody').innerHTML = `
+                    <tr><td colspan="5"><div class="empty"><span class="icon">❌</span>Error loading attendance</div></td></tr>
+                `;
+            }
+        }
+
+        // ===== RENDER ATTENDANCE =====
+        function renderAttendance() {
+            const tbody = document.getElementById('attendanceTableBody');
+            const total = studentAttendance.length;
+            document.getElementById('attendanceTotalCount').textContent = total;
+            document.getElementById('attendanceBadge').textContent = total;
+
+            const start = (attendancePage - 1) * attendancePageSize;
+            const end = Math.min(start + attendancePageSize, total);
+            const pageData = studentAttendance.slice(start, end);
+
+            if (total === 0) {
+                tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><span class="icon">📋</span>No attendance records found</div></td></tr>`;
+                document.getElementById('attendancePaginationInfo').textContent = 'Showing 0-0 of 0';
+                document.getElementById('attendancePaginationButtons').innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            pageData.forEach((a, index) => {
+                const statusBadge = {
+                    'present': 'badge-present',
+                    'absent': 'badge-absent',
+                    'late': 'badge-late'
+                }[a.status] || 'badge-absent';
+
+                html += `
+                    <tr>
+                        <td>${start + index + 1}</td>
+                        <td>${a.date || 'N/A'}</td>
+                        <td>${a.course_name || 'N/A'}</td>
+                        <td><span class="badge ${statusBadge}">${(a.status || 'absent').toUpperCase()}</span></td>
+                        <td>${a.check_in_time || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+
+            document.getElementById('attendancePaginationInfo').textContent = `Showing ${start + 1}-${end} of ${total}`;
+
+            const totalPages = Math.ceil(total / attendancePageSize);
+            const container = document.getElementById('attendancePaginationButtons');
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let pagesHtml = `<button onclick="changeAttendancePage('prev')" ${attendancePage <= 1 ? 'disabled' : ''}>‹</button>`;
+            for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+                pagesHtml += `<button onclick="goToAttendancePage(${i})" class="${i === attendancePage ? 'active' : ''}">${i}</button>`;
+            }
+            if (totalPages > 5) {
+                pagesHtml += `<span style="color:var(--text-muted);padding:0 4px;">...</span>`;
+                pagesHtml += `<button onclick="goToAttendancePage(${totalPages})">${totalPages}</button>`;
+            }
+            pagesHtml += `<button onclick="changeAttendancePage('next')" ${attendancePage >= totalPages ? 'disabled' : ''}>›</button>`;
+            container.innerHTML = pagesHtml;
+        }
+
+        function goToAttendancePage(page) {
+            const total = studentAttendance.length;
+            const totalPages = Math.ceil(total / attendancePageSize);
+            if (page < 1 || page > totalPages) return;
+            attendancePage = page;
+            renderAttendance();
+        }
+
+        function changeAttendancePage(dir) {
+            const total = studentAttendance.length;
+            const totalPages = Math.ceil(total / attendancePageSize);
+            if (dir === 'prev' && attendancePage > 1) attendancePage--;
+            if (dir === 'next' && attendancePage < totalPages) attendancePage++;
+            renderAttendance();
+        }
+
+        // ===== UPDATE STATS =====
+        function updateStats() {
+            const totalPresent = studentAttendance.filter(a => a.status === 'present').length;
+            const totalAbsent = studentAttendance.filter(a => a.status === 'absent').length;
+            const totalLate = studentAttendance.filter(a => a.status === 'late').length;
+            const total = studentAttendance.length;
+
+            document.getElementById('totalPresent').textContent = totalPresent;
+            document.getElementById('totalAbsent').textContent = totalAbsent;
+
+            const rate = total > 0 ? Math.round(((totalPresent + totalLate) / total) * 100) : 0;
+            document.getElementById('attendanceRate').textContent = rate + '%';
+
+            // Update profile
+            document.getElementById('profileAttendance').textContent = rate + '%';
+            document.getElementById('profileProgressBar').style.width = rate + '%';
+            document.getElementById('profileProgressBar').className = `fill ${rate >= 75 ? 'fill-high' : rate >= 50 ? 'fill-medium' : 'fill-low'}`;
+
+            // Update analytics
+            document.getElementById('analyticsPresent').textContent = totalPresent;
+            document.getElementById('analyticsAbsent').textContent = totalAbsent;
+            document.getElementById('analyticsLate').textContent = totalLate;
+            document.getElementById('analyticsRate').textContent = rate + '%';
+
+            // Chart
+            const totalRecords = totalPresent + totalAbsent + totalLate;
+            if (totalRecords > 0) {
+                const pct = Math.round((totalPresent / totalRecords) * 100);
+                const aPct = Math.round((totalAbsent / totalRecords) * 100);
+                const lPct = Math.round((totalLate / totalRecords) * 100);
+                document.getElementById('chartPresent').textContent = pct + '%';
+                document.getElementById('chartAbsent').textContent = aPct + '%';
+                document.getElementById('chartLate').textContent = lPct + '%';
+                document.getElementById('chartPresentBar').style.width = pct + '%';
+                document.getElementById('chartAbsentBar').style.width = aPct + '%';
+                document.getElementById('chartLateBar').style.width = lPct + '%';
+            }
+        }
+
+        function updateBadges() {
+            document.getElementById('courseBadge').textContent = studentCourses.length || 0;
+            document.getElementById('attendanceBadge').textContent = studentAttendance.length || 0;
+        }
+
+        // ===== LOAD PROFILE DATA =====
+        async function loadProfileData() {
+            try {
+                const data = await fetchAPI('/auth/me');
+                if (data.success && data.user) {
+                    document.getElementById('profileFullName').textContent = data.user.full_name || 'N/A';
+                    document.getElementById('profileUsername').textContent = data.user.username || 'N/A';
+                    document.getElementById('profileEmail').textContent = data.user.email || 'N/A';
+                    document.getElementById('profileRole').textContent = data.user.role ? data.user.role.toUpperCase() : 'N/A';
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        // ===== LOAD ANALYTICS =====
+        function loadAnalytics() {
+            updateStats();
+        }
+
+        // ===== GENERATE REPORT =====
+        function generateReport(type) {
+            const output = document.getElementById('reportData');
+            output.style.display = 'block';
+            const now = new Date().toLocaleString();
+            let report = '';
+
+            switch (type) {
+                case 'attendance':
+                    report = `📊 ATTENDANCE REPORT\n========================================\nGenerated: ${now}\nTotal Records: ${studentAttendance.length}\n========================================\n\n`;
+                    const present = studentAttendance.filter(a => a.status === 'present').length;
+                    const absent = studentAttendance.filter(a => a.status === 'absent').length;
+                    const late = studentAttendance.filter(a => a.status === 'late').length;
+                    report += `✅ Present: ${present}\n❌ Absent: ${absent}\n⏰ Late: ${late}\n📊 Rate: ${Math.round(((present + late) / (studentAttendance.length || 1)) * 100)}%\n`;
+                    break;
+                case 'courses':
+                    report = `📚 COURSE REPORT\n========================================\nGenerated: ${now}\nTotal Courses: ${studentCourses.length}\n========================================\n\n`;
+                    studentCourses.forEach((c, i) => {
+                        const pct = c.attendance_percentage !== undefined ? parseFloat(c.attendance_percentage) || 0 : 0;
+                        report += `${i+1}. ${c.course_code || c.name} - ${pct}%\n`;
+                    });
+                    break;
+                case 'performance':
+                    report = `📈 PERFORMANCE REPORT\n========================================\nGenerated: ${now}\n========================================\n\n`;
+                    const total = studentAttendance.length;
+                    const p = studentAttendance.filter(a => a.status === 'present').length;
+                    const a = studentAttendance.filter(a => a.status === 'absent').length;
+                    const l = studentAttendance.filter(a => a.status === 'late').length;
+                    report += `📊 Overall Performance:\n`;
+                    report += `  - Present: ${p} (${total > 0 ? Math.round((p/total)*100) : 0}%)\n`;
+                    report += `  - Absent: ${a} (${total > 0 ? Math.round((a/total)*100) : 0}%)\n`;
+                    report += `  - Late: ${l} (${total > 0 ? Math.round((l/total)*100) : 0}%)\n`;
+                    report += `  - Rate: ${total > 0 ? Math.round(((p + l)/total)*100) : 0}%\n`;
+                    break;
+                case 'full':
+                    report = `📊 FULL REPORT\n========================================\nGenerated: ${now}\n========================================\n\n`;
+                    report += `👨‍🎓 Student: ${user.full_name || 'N/A'}\n`;
+                    report += `📧 Email: ${user.email || 'N/A'}\n`;
+                    report += `📚 Courses: ${studentCourses.length}\n`;
+                    report += `📋 Attendance: ${studentAttendance.length}\n`;
+                    report += `\n📊 Summary:\n`;
+                    const p2 = studentAttendance.filter(a => a.status === 'present').length;
+                    const a2 = studentAttendance.filter(a => a.status === 'absent').length;
+                    const l2 = studentAttendance.filter(a => a.status === 'late').length;
+                    report += `  - Present: ${p2}\n  - Absent: ${a2}\n  - Late: ${l2}\n  - Rate: ${(studentAttendance.length > 0) ? Math.round(((p2 + l2) / studentAttendance.length) * 100) : 0}%\n`;
+                    break;
+            }
+            output.textContent = report;
+            showNotification(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} Report generated`, 'success');
+        }
+
+        // ===== SEARCH =====
+        function searchData() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            if (term.length > 2) {
+                showNotification(`🔍 Searching for "${term}"...`, 'info');
+            }
+        }
+
+        // ===== NOTIFICATIONS =====
+        function showNotification(message, type = 'info') {
+            const colors = { success: '#22C55E', error: '#EF4444', warning: '#F59E0B', info: '#4F46E5' };
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed; bottom: 24px; right: 24px; padding: 14px 24px;
+                background: var(--bg-card); border: 1px solid var(--border-color);
+                border-left: 4px solid ${colors[type] || '#4F46E5'};
+                border-radius: 10px; color: var(--text-primary);
+                font-size: 14px; font-weight: 500;
+                box-shadow: var(--shadow-lg); z-index: 9999;
+                animation: slideUp 0.3s ease; max-width: 400px;
+                backdrop-filter: blur(12px);
+                transition: all 0.3s ease;
+            `;
+            const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+            notification.innerHTML = `${icons[type] || 'ℹ️'} ${message}`;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(20px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // ===== LOGOUT =====
+        function confirmLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.clear();
+                window.location.href = '/login.html';
+            }
+        }
+
+        // ===== INIT =====
+        loadData();
+
+        console.log('%c📚 Student Dashboard loaded!', 'font-size:18px;font-weight:bold;color:#818CF8;');
+        console.log(`%c👨‍🎓 Welcome, ${user.full_name || 'Student'}`, 'font-size:14px;color:#22C55E;');
     </script>
+
 </body>
 </html>
