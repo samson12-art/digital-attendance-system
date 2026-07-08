@@ -1,8 +1,8 @@
-module.exports = { /* attendance controller */ } 
 const Attendance = require('../models/Attendance');
 const Course = require('../models/Course');
 const logger = require('../utils/logger');
 
+// Mark attendance for a student
 exports.markAttendance = async (req, res) => {
     try {
         const { student_id, course_id, status, remarks, latitude, longitude } = req.body;
@@ -44,6 +44,65 @@ exports.markAttendance = async (req, res) => {
     }
 };
 
+// Mark bulk attendance for all students in a course
+exports.markBulkAttendance = async (req, res) => {
+    try {
+        const { course_id, date, status, remarks } = req.body;
+        const check_in_time = new Date().toTimeString().split(' ')[0];
+
+        // Get all enrolled students for this course
+        const students = await Course.getEnrolledStudents(course_id);
+        
+        if (!students || students.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No students enrolled in this course'
+            });
+        }
+
+        const results = [];
+        for (const student of students) {
+            try {
+                const attendance = await Attendance.markAttendance({
+                    student_id: student.id,
+                    course_id,
+                    status: status || 'present',
+                    check_in_time,
+                    marked_by: req.user.id,
+                    remarks: remarks || `Attendance marked on ${date || new Date().toISOString().split('T')[0]}`
+                });
+                results.push({
+                    student_id: student.id,
+                    student_name: student.full_name,
+                    status: attendance.status,
+                    success: true
+                });
+            } catch (error) {
+                results.push({
+                    student_id: student.id,
+                    student_name: student.full_name,
+                    error: error.message,
+                    success: false
+                });
+            }
+        }
+
+        logger.info(`Bulk attendance marked for ${results.length} students in course ${course_id}`);
+        res.json({
+            success: true,
+            message: `Attendance marked for ${results.filter(r => r.success).length} students`,
+            results
+        });
+    } catch (error) {
+        logger.error(`Bulk attendance error: ${error.message}`);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+};
+
+// Get attendance for a specific student
 exports.getAttendanceByStudent = async (req, res) => {
     try {
         const { studentId } = req.params;
@@ -68,6 +127,7 @@ exports.getAttendanceByStudent = async (req, res) => {
     }
 };
 
+// Get attendance for a course (teacher view)
 exports.getAttendanceByCourse = async (req, res) => {
     try {
         const { courseId } = req.params;
@@ -96,6 +156,7 @@ exports.getAttendanceByCourse = async (req, res) => {
     }
 };
 
+// Get attendance stats for a student
 exports.getAttendanceStats = async (req, res) => {
     try {
         const { studentId } = req.params;
@@ -112,6 +173,7 @@ exports.getAttendanceStats = async (req, res) => {
     }
 };
 
+// Update attendance record
 exports.updateAttendance = async (req, res) => {
     try {
         const { id } = req.params;
@@ -161,9 +223,19 @@ exports.updateAttendance = async (req, res) => {
     }
 };
 
+// Get attendance summary for a student (all courses)
 exports.getAttendanceSummary = async (req, res) => {
     try {
         const { studentId } = req.params;
+        
+        // Check authorization
+        if (req.user.role === 'student' && parseInt(req.user.id) !== parseInt(studentId)) {
+            return res.status(403).json({ 
+                success: false,
+                message: 'Access denied' 
+            });
+        }
+
         const summary = await Attendance.getAttendanceSummary(studentId);
         res.json({ success: true, summary });
     } catch (error) {
@@ -175,9 +247,23 @@ exports.getAttendanceSummary = async (req, res) => {
     }
 };
 
+// Get course attendance summary for teacher
 exports.getCourseAttendanceSummary = async (req, res) => {
     try {
         const { courseId } = req.params;
+
+        // Verify teacher has access to this course
+        if (req.user.role === 'teacher') {
+            const courses = await Course.getByTeacher(req.user.id);
+            const hasAccess = courses.some(c => c.id === parseInt(courseId));
+            if (!hasAccess) {
+                return res.status(403).json({ 
+                    success: false,
+                    message: 'Access denied. You are not assigned to this course.' 
+                });
+            }
+        }
+
         const summary = await Attendance.getCourseAttendanceSummary(courseId);
         res.json({ success: true, summary });
     } catch (error) {
@@ -189,6 +275,7 @@ exports.getCourseAttendanceSummary = async (req, res) => {
     }
 };
 
+// Get daily report
 exports.getDailyReport = async (req, res) => {
     try {
         const { date } = req.query;
@@ -203,6 +290,7 @@ exports.getDailyReport = async (req, res) => {
     }
 };
 
+// Get course schedule
 exports.getCourseSchedule = async (req, res) => {
     try {
         const { courseId } = req.params;
@@ -217,12 +305,41 @@ exports.getCourseSchedule = async (req, res) => {
     }
 };
 
+// Get sections
 exports.getSections = async (req, res) => {
     try {
         const sections = await Course.getSections();
         res.json({ success: true, sections });
     } catch (error) {
         logger.error(`Get sections error: ${error.message}`);
+        res.status(500).json({ 
+            success: false,
+            message: 'Server error' 
+        });
+    }
+};
+
+// Get today's attendance for a course
+exports.getTodayAttendance = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        
+        // Verify teacher has access to this course
+        if (req.user.role === 'teacher') {
+            const courses = await Course.getByTeacher(req.user.id);
+            const hasAccess = courses.some(c => c.id === parseInt(courseId));
+            if (!hasAccess) {
+                return res.status(403).json({ 
+                    success: false,
+                    message: 'Access denied. You are not assigned to this course.' 
+                });
+            }
+        }
+
+        const attendance = await Attendance.getTodayAttendance(courseId);
+        res.json({ success: true, attendance });
+    } catch (error) {
+        logger.error(`Get today's attendance error: ${error.message}`);
         res.status(500).json({ 
             success: false,
             message: 'Server error' 

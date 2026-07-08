@@ -703,6 +703,7 @@
         let currentPage = 1;
         const pageSize = 10;
         let lateStudentId = null;
+        let lateCourseId = null;
 
         // ===== INIT =====
         document.getElementById('userName').textContent = user.full_name || 'Teacher';
@@ -710,7 +711,7 @@
         document.getElementById('userAvatar').textContent = (user.full_name || 'T').charAt(0).toUpperCase();
 
         if (!token || !user.id) {
-            window.location.href = '/login.html';
+            window.location.href = 'login.html';
         }
 
         console.log('👨‍🏫 Teacher ID:', user.id);
@@ -918,9 +919,9 @@
                         <td><span class="badge ${statusBadge}">${status.toUpperCase()}</span></td>
                         <td>
                             <div class="action-btns">
-                                <button class="btn btn-present btn-xs" onclick="markAttendance(${s.id}, 'present')" title="Mark Present">✅ P</button>
-                                <button class="btn btn-late-time btn-xs" onclick="openLateModal(${s.id})" title="Mark Late with Time">⏰ L</button>
-                                <button class="btn btn-absent btn-xs" onclick="markAttendance(${s.id}, 'absent')" title="Mark Absent">❌ A</button>
+                                <button class="btn btn-present btn-xs" onclick="markAttendance(${s.id}, 'present', ${s.course_id || 'null'})" title="Mark Present">✅ P</button>
+                                <button class="btn btn-late-time btn-xs" onclick="openLateModal(${s.id}, ${s.course_id || 'null'})" title="Mark Late with Time">⏰ L</button>
+                                <button class="btn btn-absent btn-xs" onclick="markAttendance(${s.id}, 'absent', ${s.course_id || 'null'})" title="Mark Absent">❌ A</button>
                             </div>
                         </td>
                     </tr>
@@ -984,8 +985,9 @@
         }
 
         // ===== LATE TIME MODAL =====
-        function openLateModal(studentId) {
+        function openLateModal(studentId, courseId) {
             lateStudentId = studentId;
+            lateCourseId = courseId;
             document.getElementById('lateTimeModal').classList.add('active');
             document.getElementById('lateTimeInput').value = '08:15';
         }
@@ -993,6 +995,7 @@
         function closeLateModal() {
             document.getElementById('lateTimeModal').classList.remove('active');
             lateStudentId = null;
+            lateCourseId = null;
         }
 
         function confirmLateTime() {
@@ -1002,12 +1005,12 @@
                 return;
             }
             if (lateStudentId !== null) {
-                markAttendanceWithTime(lateStudentId, 'late', time);
+                markAttendanceWithTime(lateStudentId, 'late', time, lateCourseId);
             }
             closeLateModal();
         }
 
-        async function markAttendanceWithTime(studentId, status, time) {
+        async function markAttendanceWithTime(studentId, status, time, courseId) {
             try {
                 const response = await fetch(`${API_URL}/attendance/mark`, {
                     method: 'POST',
@@ -1017,6 +1020,7 @@
                     },
                     body: JSON.stringify({
                         student_id: studentId,
+                        course_id: courseId,
                         status: status,
                         check_in_time: time,
                         date: new Date().toISOString().split('T')[0]
@@ -1026,7 +1030,7 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    const student = allStudents.find(s => s.id === studentId);
+                    const student = allStudents.find(s => s.id === studentId && s.course_id === courseId);
                     if (student) student.status = status;
                     filterStudents();
                     showNotification(`✅ ${student?.full_name || 'Student'} marked as LATE at ${time}`, 'success');
@@ -1040,7 +1044,7 @@
         }
 
         // ===== MARK ATTENDANCE =====
-        async function markAttendance(studentId, status) {
+        async function markAttendance(studentId, status, courseId) {
             try {
                 const response = await fetch(`${API_URL}/attendance/mark`, {
                     method: 'POST',
@@ -1050,6 +1054,7 @@
                     },
                     body: JSON.stringify({
                         student_id: studentId,
+                        course_id: courseId,
                         status: status,
                         date: new Date().toISOString().split('T')[0]
                     })
@@ -1058,7 +1063,7 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    const student = allStudents.find(s => s.id === studentId);
+                    const student = allStudents.find(s => s.id === studentId && s.course_id === courseId);
                     if (student) student.status = status;
                     filterStudents();
                     showNotification(`✅ ${student?.full_name || 'Student'} marked as ${status.toUpperCase()}`, 'success');
@@ -1082,7 +1087,7 @@
             }
 
             for (const s of students) {
-                await markAttendance(s.id, status);
+                await markAttendance(s.id, status, s.course_id);
             }
             showNotification(`✅ All ${students.length} students marked as ${status}`, 'success');
         }
@@ -1116,7 +1121,7 @@
         function confirmLogout() {
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.clear();
-                window.location.href = '/login.html';
+                window.location.href = 'login.html';
             }
         }
 

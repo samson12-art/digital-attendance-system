@@ -1,4 +1,3 @@
-module.exports = { /* Attendance model */ } 
 const pool = require('../config/database');
 const logger = require('../utils/logger');
 
@@ -20,7 +19,7 @@ class Attendance {
                 check_in_time, check_out_time, 
                 marked_by, remarks, latitude, longitude 
             } = data;
-            
+
             const result = await pool.query(
                 `INSERT INTO attendance (student_id, course_id, date, status, check_in_time, check_out_time, marked_by, remarks, latitude, longitude)
                  VALUES ($1, $2, CURRENT_DATE, $3, $4, $5, $6, $7, $8, $9)
@@ -36,7 +35,7 @@ class Attendance {
                  RETURNING *`,
                 [student_id, course_id, status, check_in_time, check_out_time, marked_by, remarks, latitude, longitude]
             );
-            
+
             logger.info(`Attendance marked: Student ${student_id} - ${status}`);
             return result.rows[0];
         } catch (error) {
@@ -91,24 +90,28 @@ class Attendance {
             let query = `
                 SELECT 
                     a.*, 
+                    u.id as student_id,
                     u.full_name as student_name, 
                     u.username,
                     u.email,
                     s.section_code
                 FROM attendance a
-                JOIN users u ON a.student_id = u.id
+                RIGHT JOIN users u ON a.student_id = u.id
                 LEFT JOIN courses c ON a.course_id = c.id
                 LEFT JOIN sections s ON c.section_id = s.id
-                WHERE a.course_id = $1
+                JOIN enrollments e ON u.id = e.student_id AND e.course_id = $1
+                WHERE u.role = 'student' AND u.is_active = true
             `;
             const params = [courseId];
 
             if (date) {
                 query += ' AND a.date = $2';
                 params.push(date);
+            } else {
+                query += ' AND a.date = CURRENT_DATE';
             }
 
-            query += ' ORDER BY a.date DESC, u.full_name';
+            query += ' ORDER BY u.full_name';
 
             const result = await pool.query(query, params);
             return result.rows;

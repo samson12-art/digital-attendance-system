@@ -1172,7 +1172,7 @@
         document.getElementById('profileName').textContent = user.full_name || 'Admin';
 
         if (!localStorage.getItem('token')) {
-            window.location.href = '/login.html';
+            window.location.href = 'login.html';
         }
 
         // ===== THEME TOGGLE =====
@@ -1990,7 +1990,7 @@
         function confirmLogout() {
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.clear();
-                window.location.href = '/login.html';
+                window.location.href = 'login.html';
             }
         }
 

@@ -10,13 +10,16 @@ console.log('========================================');
 
 console.log('📂 Loading authRoutes...');
 const authRoutes = require('./routes/authRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
+const userRoutes = require('./routes/userRoutes');
+const courseRoutes = require('./routes/courseRoutes');
 console.log('✅ authRoutes loaded');
 
 const app = express();
 
 // Serve static files
-app.use(express.static(path.join(__dirname, '../frontend')));
-app.use(express.static(path.join(__dirname, '..')));
+app.use(express.static(path.join(__dirname, '../../frontend')));
+app.use(express.static(path.join(__dirname, '../..')));
 
 // Security
 app.use(helmet());
@@ -52,6 +55,9 @@ app.use((req, res, next) => {
 // Routes
 console.log('📡 Registering routes...');
 app.use('/api/auth', authRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/courses', courseRoutes);
 console.log('✅ Routes registered');
 
 // Health check

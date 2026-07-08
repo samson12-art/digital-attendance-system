@@ -1,16 +1,17 @@
 const express = require('express');
-const router = express.Router();
+const authController = require('../controllers/authController');
+const { auth, authorize } = require('../middleware/auth');
 
-console.log('🚀 AUTH ROUTES FILE IS EXECUTING!');
+const router = express.Router();
 
 router.get('/test', (req, res) => {
     res.json({ success: true, message: 'Auth routes are working!' });
 });
 
-router.post('/login', (req, res) => {
-    console.log('🔐 LOGIN ROUTE HIT!');
-    console.log('📝 Request body:', req.body);
-    res.json({ success: true, message: 'Login endpoint reached', received: req.body });
-});
+router.post('/login', authController.login);
+router.post('/register', authController.register);
+router.get('/me', auth, authController.me);
+router.get('/users', auth, authorize('admin'), authController.getUsers);
+router.get('/dashboard-stats', auth, authorize('admin'), authController.getDashboardStats);
 
 module.exports = router;
