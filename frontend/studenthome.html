@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #0a0a1a; color: white; }
+        nav { background: #1a1a2e; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .logo { font-size: 20px; font-weight: 700; }
+        .logo span { color: #4F46E5; }
+        .user-info { display: flex; align-items: center; gap: 16px; }
+        .logout-btn { padding: 8px 16px; background: rgba(239,68,68,0.15); color: #EF4444; border: none; border-radius: 6px; cursor: pointer; }
+        .container { padding: 24px; max-width: 1200px; margin: 0 auto; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: #1a1a2e; padding: 20px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.06); }
+        .stat-number { font-size: 32px; font-weight: 700; color: #4F46E5; }
+        .stat-label { color: #94a3b8; }
+        .card { background: #1a1a2e; padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 20px; }
+        .card h3 { color: #4F46E5; margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        table th { text-align: left; padding: 10px; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .badge { padding: 2px 10px; border-radius: 20px; font-size: 11px; }
+        .badge-present { background: rgba(34,197,94,0.15); color: #22C55E; }
+        .badge-absent { background: rgba(239,68,68,0.15); color: #EF4444; }
+        .badge-late { background: rgba(245,158,11,0.15); color: #F59E0B; }
+        .empty { text-align: center; padding: 40px; color: #94a3b8; }
+        .student-badge { background: #4F46E5; padding: 2px 12px; border-radius: 20px; font-size: 11px; }
+        .progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 8px; overflow: hidden; }
+        .progress-bar .fill { height: 100%; border-radius: 4px; }
+        .fill-high { background: #22C55E; }
+        .fill-medium { background: #F59E0B; }
+        .fill-low { background: #EF4444; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">📚 Digital <span>Attendance</span></div>
+        <div class="user-info">
+            <span id="studentName">Student</span>
+            <span class="student-badge">👨‍🎓 Student</span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>👨‍🎓 Student Dashboard</h1>
+        <p style="color: #94a3b8; margin-bottom: 20px;">Track your attendance and courses</p>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-number">4</div><div class="stat-label">Enrolled Courses</div></div>
+            <div class="stat-card"><div class="stat-number">85%</div><div class="stat-label">Overall Attendance</div></div>
+        </div>
+        <div class="card">
+            <h3>📋 My Attendance</h3>
+            <table>
+                <tr><th>Course</th><th>Date</th><th>Status</th></tr>
+                <tr><td>CS101</td><td>2024-01-15</td><td><span class="badge badge-present">Present</span></td></tr>
+                <tr><td>CS101</td><td>2024-01-14</td><td><span class="badge badge-present">Present</span></td></tr>
+                <tr><td>CS102</td><td>2024-01-13</td><td><span class="badge badge-absent">Absent</span></td></tr>
+                <tr><td>CS101</td><td>2024-01-12</td><td><span class="badge badge-present">Present</span></td></tr>
+                <tr><td>CS102</td><td>2024-01-11</td><td><span class="badge badge-late">Late</span></td></tr>
+            </table>
+            <div style="margin-top:12px;">
+                <div style="display:flex;justify-content:space-between;font-size:13px;color:#94a3b8;">
+                    <span>Overall Attendance: <strong style="color:#22C55E;">85%</strong></span>
+                    <span>Present: 12 | Absent: 2 | Late: 1</span>
+                </div>
+                <div class="progress-bar"><div class="fill fill-high" style="width:85%;"></div></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        document.getElementById('studentName').textContent = user.full_name || 'Student';
+        function logout() { if (confirm('Logout?')) { localStorage.clear(); window.location.href = '/login.html'; } }
+    </script>
+</body>
+</html>
