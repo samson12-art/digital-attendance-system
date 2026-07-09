@@ -9,6 +9,21 @@
 -- \c digital_attendance_db;
 
 -- =============================================
+-- CLASSES TABLE (used by the running server)
+-- teacher_id FK added after users table exists
+-- =============================================
+CREATE TABLE IF NOT EXISTS classes (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    section VARCHAR(10) NOT NULL,
+    year VARCHAR(20) NOT NULL,
+    semester VARCHAR(20) NOT NULL,
+    teacher_id INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================
 -- USERS TABLE
 -- =============================================
 CREATE TABLE IF NOT EXISTS users (
@@ -19,10 +34,21 @@ CREATE TABLE IF NOT EXISTS users (
     full_name VARCHAR(100) NOT NULL,
     role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'teacher', 'student')),
     is_active BOOLEAN DEFAULT TRUE,
+    class_id INTEGER REFERENCES classes(id) ON DELETE SET NULL,
+    entry_year VARCHAR(20),
+    semester VARCHAR(20),
+    department VARCHAR(100),
     last_login TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Add FK constraints (classes -> users, users -> classes)
+ALTER TABLE classes ADD CONSTRAINT fk_classes_teacher
+    FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE SET NULL;
+
+ALTER TABLE users ADD CONSTRAINT fk_users_class
+    FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE SET NULL;
 
 -- =============================================
 -- SECTIONS TABLE
@@ -145,6 +171,7 @@ INSERT INTO sections (section_code, section_name) VALUES
 
 -- =============================================
 -- INSERT DEFAULT USERS (Password: "123" hashed with bcrypt)
+-- class_id will be assigned after classes are seeded
 -- =============================================
 INSERT INTO users (username, password, email, full_name, role) VALUES
 ('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mr/.c4xr7Xq5Jf5xL8qZrVY4XbVr8v2', 'admin@digitalsystem.com', 'System Administrator', 'admin'),
@@ -420,6 +447,45 @@ INSERT INTO users (username, password, email, full_name, role) VALUES
 ('yohannes_gebru', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mr/.c4xr7Xq5Jf5xL8qZrVY4XbVr8v2', 'yohannes.gebru@student.com', 'Yohannes Gebru G/Hiwot', 'student'),
 ('yohannes_habte', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mr/.c4xr7Xq5Jf5xL8qZrVY4XbVr8v2', 'yohannes.habte@student.com', 'Yohannes Habte Neda', 'student'),
 ('yoseph', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mr/.c4xr7Xq5Jf5xL8qZrVY4XbVr8v2', 'yoseph@student.com', 'Yoseph Fetene Lemma', 'student');
+
+-- =============================================
+-- INSERT CLASSES (for the running server)
+-- Must come after all users exist for FKs
+-- =============================================
+INSERT INTO classes (name, section, year, semester, teacher_id) VALUES
+('Operating Systems', 'A', '2024', 'Fall', (SELECT id FROM users WHERE username = 'yordanos')),
+('Web Programming I', 'A', '2024', 'Fall', (SELECT id FROM users WHERE username = 'mikiyas')),
+('Java Programming', 'A', '2024', 'Fall', (SELECT id FROM users WHERE username = 'solomon')),
+('Data Structures and Algorithms', 'A', '2024', 'Fall', (SELECT id FROM users WHERE username = 'getahun')),
+('Automata and Complexity Theory', 'A', '2024', 'Fall', (SELECT id FROM users WHERE username = 'natnael')),
+('Microprocessor and Assembly Language', 'A', '2024', 'Fall', (SELECT id FROM users WHERE username = 'betelhem')),
+('Software Engineering', 'A', '2024', 'Fall', (SELECT id FROM users WHERE username = 'martha')),
+('Operating Systems', 'B', '2024', 'Fall', (SELECT id FROM users WHERE username = 'yordanos')),
+('Web Programming I', 'B', '2024', 'Fall', (SELECT id FROM users WHERE username = 'adis')),
+('Java Programming', 'B', '2024', 'Fall', (SELECT id FROM users WHERE username = 'solomon')),
+('Data Structures and Algorithms', 'B', '2024', 'Fall', (SELECT id FROM users WHERE username = 'getahun')),
+('Automata and Complexity Theory', 'B', '2024', 'Fall', (SELECT id FROM users WHERE username = 'natnael')),
+('Microprocessor and Assembly Language', 'B', '2024', 'Fall', (SELECT id FROM users WHERE username = 'betlehem')),
+('Software Engineering', 'B', '2024', 'Fall', (SELECT id FROM users WHERE username = 'martha'));
+
+-- Assign students to their section's class using a DO block
+DO $$
+DECLARE
+    student_ids INTEGER[];
+    total_students INTEGER;
+    section_a_count INTEGER;
+BEGIN
+    -- Get all student IDs in insertion order
+    SELECT ARRAY_AGG(id ORDER BY id) INTO student_ids FROM users WHERE role = 'student' ORDER BY id;
+    total_students := COALESCE(array_length(student_ids, 1), 0);
+    section_a_count := total_students / 2;
+
+    -- First half of students -> Section A (class_id = 1)
+    UPDATE users SET class_id = 1 WHERE id = ANY(student_ids[1:section_a_count]);
+
+    -- Second half of students -> Section B (class_id = 8)
+    UPDATE users SET class_id = 8 WHERE id = ANY(student_ids[section_a_count+1:total_students]);
+END $$;
 
 -- =============================================
 -- ENROLL ALL STUDENTS IN THEIR SECTION COURSES
