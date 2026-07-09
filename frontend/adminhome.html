@@ -624,6 +624,9 @@
                 <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">
                     <i class="fas fa-moon" id="themeIcon"></i>
                 </button>
+                <button class="btn btn-outline btn-sm" onclick="openChangePasswordModal()" style="padding:6px 14px;border-radius:8px;font-size:13px;">
+                    <i class="fas fa-key"></i> Password
+                </button>
             </div>
         </header>
 
@@ -712,6 +715,43 @@
                         <button onclick="changePage('students', 'prev')" id="studentPrevBtn">‹</button>
                         <button class="active" id="studentPage1">1</button>
                         <button onclick="changePage('students', 'next')" id="studentNextBtn">›</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SUBJECTS/COURSES TABLE ===== -->
+            <div class="table-container active" id="subjectsTable">
+                <div class="table-header">
+                    <h3>📖 Subjects / Courses</h3>
+                    <span class="total">Total: <strong id="subjectTotalCount">0</strong> subjects</span>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th>Section</th>
+                                <th>Teacher</th>
+                                <th>Students</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subjectsTableBody">
+                            <tr>
+                                <td colspan="6">
+                                    <div class="loading"><div class="spinner"></div> Loading subjects...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <span class="info" id="subjectPaginationInfo">Showing 0-0 of 0</span>
+                    <div class="pages" id="subjectPaginationButtons">
+                        <button onclick="changePage('subjects', 'prev')" id="subjectPrevBtn">‹</button>
+                        <button class="active" id="subjectPage1">1</button>
+                        <button onclick="changePage('subjects', 'next')" id="subjectNextBtn">›</button>
                     </div>
                 </div>
             </div>
@@ -1154,15 +1194,16 @@
         // ADMIN DASHBOARD - FULL CRUD + SETTINGS
         // ============================================
 
-        const API_URL = 'http://localhost:5001/api';
+        const API_URL = window.location.origin + '/api';
         const user = JSON.parse(localStorage.getItem('user') || '{}');
 
         let allStudents = [];
         let allTeachers = [];
         let allClasses = [];
         let allCourses = [];
+        let allSubjects = [];
 
-        let currentPage = { students: 1, teachers: 1, classes: 1, courses: 1 };
+        let currentPage = { students: 1, teachers: 1, classes: 1, courses: 1, subjects: 1 };
         const pageSize = 10;
 
         // ===== INIT =====
@@ -1251,6 +1292,7 @@
                 document.getElementById('pageHeader').textContent = '👑 Welcome, ' + (user.full_name || 'Admin') + '!';
                 document.getElementById('pageSubtitle').textContent = 'Manage your academic institution efficiently';
                 document.getElementById('studentsTable').classList.add('active');
+                document.getElementById('subjectsTable').classList.add('active');
                 return;
             }
 
@@ -1323,6 +1365,7 @@
             await loadTeachersData();
             await loadClassesData();
             await loadCoursesData();
+            await loadSubjectsData();
             await loadStats();
             updateBadges();
             updateReportStats();
@@ -1336,6 +1379,7 @@
                     document.getElementById('totalStudents').textContent = data.stats.total_students || 0;
                     document.getElementById('totalTeachers').textContent = data.stats.total_teachers || 0;
                     document.getElementById('totalClasses').textContent = data.stats.total_classes || 0;
+                    document.getElementById('totalCourses').textContent = data.stats.total_courses || 0;
                 }
             } catch (error) {
                 console.error('Error loading stats:', error);
@@ -1568,6 +1612,55 @@
             renderPagination('courses', total, 'coursePaginationButtons', 'coursePage');
         }
 
+        // ===== LOAD SUBJECTS =====
+        async function loadSubjectsData() {
+            try {
+                const data = await fetchAPI('/classes');
+                if (data.success) {
+                    allSubjects = data.classes || [];
+                    renderSubjects();
+                }
+            } catch (error) {
+                console.error('Error loading subjects:', error);
+            }
+        }
+
+        // ===== RENDER SUBJECTS =====
+        function renderSubjects() {
+            const tbody = document.getElementById('subjectsTableBody');
+            const total = allSubjects.length;
+            document.getElementById('subjectTotalCount').textContent = total;
+
+            const start = (currentPage.subjects - 1) * pageSize;
+            const end = Math.min(start + pageSize, total);
+            const pageData = allSubjects.slice(start, end);
+
+            if (total === 0) {
+                tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><span class="icon">📖</span>No subjects found</div></td></tr>`;
+                document.getElementById('subjectPaginationInfo').textContent = 'Showing 0-0 of 0';
+                document.getElementById('subjectPaginationButtons').innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            pageData.forEach((s, index) => {
+                html += `
+                    <tr>
+                        <td>${start + index + 1}</td>
+                        <td><strong>${s.name}</strong></td>
+                        <td>${s.name || '-'}</td>
+                        <td><span class="class-badge">${s.section}</span></td>
+                        <td>${s.teacher_name || 'Not Assigned'}</td>
+                        <td>${s.student_count || 0}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+            document.getElementById('subjectPaginationInfo').textContent = `Showing ${start + 1}-${end} of ${total}`;
+            renderPagination('subjects', total, 'subjectPaginationButtons', 'subjectPage');
+        }
+
         // ===== PAGINATION =====
         function renderPagination(type, total, containerId, pagePrefix) {
             const totalPages = Math.ceil(total / pageSize);
@@ -1606,6 +1699,7 @@
             else if (type === 'teachers') total = allTeachers.length;
             else if (type === 'classes') total = allClasses.length;
             else if (type === 'courses') total = allCourses.length;
+            else if (type === 'subjects') total = allSubjects.length;
 
             const totalPages = Math.ceil(total / pageSize);
             if (page < 1 || page > totalPages) return;
@@ -1615,6 +1709,7 @@
             else if (type === 'teachers') renderTeachers();
             else if (type === 'classes') renderClasses();
             else if (type === 'courses') renderCourses();
+            else if (type === 'subjects') renderSubjects();
         }
 
         function changePage(type, dir) {
@@ -1623,6 +1718,7 @@
             else if (type === 'teachers') total = allTeachers.length;
             else if (type === 'classes') total = allClasses.length;
             else if (type === 'courses') total = allCourses.length;
+            else if (type === 'subjects') total = allSubjects.length;
 
             const totalPages = Math.ceil(total / pageSize);
             if (dir === 'prev' && currentPage[type] > 1) currentPage[type]--;
@@ -1632,6 +1728,7 @@
             else if (type === 'teachers') renderTeachers();
             else if (type === 'classes') renderClasses();
             else if (type === 'courses') renderCourses();
+            else if (type === 'subjects') renderSubjects();
         }
 
         // ===== UPDATE BADGES =====
@@ -1698,45 +1795,62 @@
         }
 
         // ===== GENERATE REPORT =====
-        function generateReport(type) {
+        async function generateReport(type) {
             const output = document.getElementById('reportData');
             output.classList.add('show');
+            output.textContent = '⏳ Loading data...';
+
+            const now = new Date().toLocaleString();
+
+            // Fetch fresh data from API
+            const [studentsRes, teachersRes, classesRes, statsRes] = await Promise.all([
+                fetchAPI('/users/students'),
+                fetchAPI('/users/teachers'),
+                fetchAPI('/classes'),
+                fetchAPI('/admin/stats')
+            ]);
+
+            const reportStudents = (studentsRes.success ? studentsRes.students : []);
+            const reportTeachers = (teachersRes.success ? teachersRes.teachers : []);
+            const reportClasses = (classesRes.success ? classesRes.classes : []);
+            const stats = (statsRes.success ? statsRes.stats : {});
 
             let report = '';
-            const now = new Date().toLocaleString();
+            const currentYear = new Date().getFullYear();
+            const nextYear = currentYear + 1;
 
             switch (type) {
                 case 'students':
-                    report = `📊 STUDENTS REPORT\n========================================\nGenerated: ${now}\nTotal Students: ${allStudents.length}\n========================================\n\n`;
-                    allStudents.slice(0, 20).forEach((s, i) => {
+                    report = `📊 STUDENTS REPORT\n========================================\nGenerated: ${now}\nTotal Students: ${reportStudents.length}\n========================================\n\n`;
+                    reportStudents.slice(0, 20).forEach((s, i) => {
                         report += `${i+1}. ${s.full_name} (${s.username}) - ${s.class_name || 'Not Assigned'}\n`;
                     });
-                    if (allStudents.length > 20) report += `\n... and ${allStudents.length - 20} more`;
+                    if (reportStudents.length > 20) report += `\n... and ${reportStudents.length - 20} more`;
                     break;
                 case 'teachers':
-                    report = `📊 TEACHERS REPORT\n========================================\nGenerated: ${now}\nTotal Teachers: ${allTeachers.length}\n========================================\n\n`;
-                    allTeachers.slice(0, 20).forEach((t, i) => {
+                    report = `📊 TEACHERS REPORT\n========================================\nGenerated: ${now}\nTotal Teachers: ${reportTeachers.length}\n========================================\n\n`;
+                    reportTeachers.slice(0, 20).forEach((t, i) => {
                         report += `${i+1}. ${t.full_name} (${t.username}) - ${t.department || 'No Department'}\n`;
                     });
-                    if (allTeachers.length > 20) report += `\n... and ${allTeachers.length - 20} more`;
+                    if (reportTeachers.length > 20) report += `\n... and ${reportTeachers.length - 20} more`;
                     break;
                 case 'classes':
-                    report = `📊 CLASSES REPORT\n========================================\nGenerated: ${now}\nTotal Classes: ${allClasses.length}\n========================================\n\n`;
-                    allClasses.forEach((c, i) => {
+                    report = `📊 CLASSES REPORT\n========================================\nGenerated: ${now}\nTotal Classes: ${reportClasses.length}\n========================================\n\n`;
+                    reportClasses.forEach((c, i) => {
                         report += `${i+1}. ${c.name} - Section ${c.section} (${c.student_count || 0} students)\n`;
                     });
                     break;
                 case 'courses':
-                    report = `📊 COURSES REPORT\n========================================\nGenerated: ${now}\nTotal Courses: ${allCourses.length}\n========================================\n\n`;
-                    allCourses.forEach((c, i) => {
+                    report = `📊 COURSES REPORT\n========================================\nGenerated: ${now}\nTotal Courses: ${reportClasses.length}\n========================================\n\n`;
+                    reportClasses.forEach((c, i) => {
                         report += `${i+1}. ${c.name} - Section ${c.section} (${c.teacher_name || 'No Teacher'})\n`;
                     });
                     break;
                 case 'attendance':
-                    report = `📊 ATTENDANCE REPORT\n========================================\nGenerated: ${now}\n========================================\n\nTotal Students: ${allStudents.length}\nTotal Classes: ${allClasses.length}\nToday's Date: ${new Date().toISOString().split('T')[0]}\n\n📋 Summary:\n  - Students: ${allStudents.length}\n  - Teachers: ${allTeachers.length}\n  - Classes: ${allClasses.length}\n  - Courses: ${allCourses.length}\n`;
+                    report = `📊 ATTENDANCE REPORT\n========================================\nGenerated: ${now}\n========================================\n\nTotal Students: ${reportStudents.length}\nTotal Classes: ${reportClasses.length}\nToday's Date: ${new Date().toISOString().split('T')[0]}\n\n📋 Summary:\n  - Students: ${reportStudents.length}\n  - Teachers: ${reportTeachers.length}\n  - Classes: ${reportClasses.length}\n  - Courses: ${reportClasses.length}\n`;
                     break;
                 case 'full':
-                    report = `📊 FULL SYSTEM REPORT\n========================================\nGenerated: ${now}\n========================================\n\n📋 SYSTEM SUMMARY:\n  - Students: ${allStudents.length}\n  - Teachers: ${allTeachers.length}\n  - Classes: ${allClasses.length}\n  - Courses: ${allCourses.length}\n\n📅 Academic Year: 2024-2025\n📆 Semester: Fall 2024\n🏫 Institution: Digital Attendance System\n`;
+                    report = `📊 FULL SYSTEM REPORT\n========================================\nGenerated: ${now}\n========================================\n\n📋 SYSTEM SUMMARY:\n  - Students: ${stats.total_students || reportStudents.length}\n  - Teachers: ${stats.total_teachers || reportTeachers.length}\n  - Classes: ${stats.total_classes || reportClasses.length}\n  - Courses: ${stats.total_courses || reportClasses.length}\n\n📅 Academic Year: ${currentYear}-${nextYear}\n📆 Semester: Fall ${currentYear}\n🏫 Institution: Digital Attendance System\n`;
                     break;
             }
 
@@ -1892,7 +2006,7 @@
                     body: JSON.stringify({
                         name: data.name,
                         section: data.section,
-                        year: '2024',
+                        year: String(new Date().getFullYear()),
                         semester: '1st Semester',
                         teacher_id: data.teacher_id
                     })
@@ -1994,6 +2108,51 @@
             }
         }
 
+        // ===== CHANGE PASSWORD =====
+        function openChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.add('active');
+            document.getElementById('changePasswordForm').reset();
+            document.getElementById('changePasswordResult').innerHTML = '';
+        }
+
+        function closeChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.remove('active');
+        }
+
+        document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resultDiv = document.getElementById('changePasswordResult');
+            const currentPassword = document.getElementById('cpCurrentPassword').value;
+            const newPassword = document.getElementById('cpNewPassword').value;
+            const confirmPassword = document.getElementById('cpConfirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                resultDiv.innerHTML = '<div style="color:#EF4444;font-size:13px;">❌ Passwords do not match</div>';
+                return;
+            }
+            if (newPassword.length < 6) {
+                resultDiv.innerHTML = '<div style="color:#EF4444;font-size:13px;">❌ Password must be at least 6 characters</div>';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/auth/change-password`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    resultDiv.innerHTML = '<div style="color:#22C55E;font-size:13px;">✅ Password changed successfully!</div>';
+                    setTimeout(closeChangePasswordModal, 1500);
+                } else {
+                    resultDiv.innerHTML = `<div style="color:#EF4444;font-size:13px;">❌ ${data.message}</div>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = '<div style="color:#EF4444;font-size:13px;">❌ Failed to change password</div>';
+            }
+        });
+
         // ===== INIT =====
         loadData();
 
@@ -2001,6 +2160,35 @@
         console.log(`%c👑 Welcome, ${user.full_name || 'Admin'}`, 'font-size:14px;color:#22C55E;');
         console.log(`%c📊 Total Students: ${allStudents.length}, Teachers: ${allTeachers.length}, Classes: ${allClasses.length}, Courses: ${allCourses.length}`, 'font-size:12px;color:#94A3B8;');
     </script>
+
+    <!-- ===== CHANGE PASSWORD MODAL ===== -->
+    <div class="modal-overlay" id="changePasswordModal">
+        <div class="modal" style="max-width:420px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> Change Password</h2>
+                <button class="close-btn" onclick="closeChangePasswordModal()">&times;</button>
+            </div>
+            <form id="changePasswordForm">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" id="cpCurrentPassword" placeholder="Enter current password" required>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="cpNewPassword" placeholder="Min 6 characters" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" id="cpConfirmPassword" placeholder="Confirm new password" required>
+                </div>
+                <div id="changePasswordResult" style="margin-bottom:10px;"></div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeChangePasswordModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </body>
 </html>
