@@ -1,252 +1,126 @@
 # Digital Attendance System
 
-Digital Attendance System is a database-backed web application for managing students, teachers, classes, and daily attendance.
-
-## Project Status
-
-The core requirement is fulfilled: teachers can load students from PostgreSQL, mark attendance, and students can see their saved attendance from the database.
-
-| Requirement | Status |
-| --- | --- |
-| Login for admin, teacher, and student | Done |
-| Register page works on the correct backend port | Done |
-| JWT token-based sessions | Done |
-| Password hashing with bcrypt | Done |
-| Role-based authorization | Done |
-| Request logging | Done |
-| Basic security middleware and rate limiting | Done |
-| Teacher dashboard loads assigned classes from DB | Done |
-| Teacher dashboard loads students from DB | Done |
-| Teacher can mark present, late, or absent | Done |
-| Attendance is stored in PostgreSQL | Done |
-| Student dashboard loads courses/classes from DB | Done |
-| Student dashboard shows saved attendance | Done |
-| No hardcoded student list in dashboards | Done |
-| Fake student schedule removed | Done |
-| README setup and usage instructions | Done |
-| Database DDL included | Done |
-| ER diagram included | Done |
-| At least 10 meaningful Git commits | Needs work |
+A full-stack web application for managing student attendance. Teachers can mark attendance (present, late, absent) for their classes, students can view their attendance records, and admins manage users and classes.
 
 ## Tech Stack
 
-- Frontend: HTML, CSS, JavaScript
-- Backend: Node.js, Express
-- Database: PostgreSQL
-- Auth/passwords: bcryptjs
-- Sessions: JSON Web Token
-- Security: Helmet, rate limiting, role-based authorization
-- Main server file: `backend/server.js`
+- **Frontend:** HTML, CSS, JavaScript (vanilla)
+- **Backend:** Node.js, Express.js
+- **Database:** PostgreSQL
+- **Auth:** bcryptjs (password hashing) + JWT (token-based sessions)
+- **Security:** Helmet, express-rate-limit, role-based authorization
+- **Logging:** File-based request logging to `logs/requests.log`
 
-## Folder Structure
+## Architecture
 
-```text
-DIGITAL ATTENDANCE SYSTEM/
-├── backend/
-│   ├── server.js
-│   ├── package.json
-│   └── src/
-│       ├── controllers/
-│       ├── middleware/
-│       ├── models/
-│       └── routes/
-├── database/
-│   ├── schema.sql
-│   ├── seed.sql
-│   └── students.sql
-├── frontend/
-│   ├── login.html
-│   ├── register.html
-│   ├── adminhome.html
-│   ├── teacherhome.html
-│   └── studenthome.html
-└── README.md
-```
+The application follows an MVC-like pattern:
+- **Model:** PostgreSQL tables and queries
+- **View:** HTML frontend files in `frontend/`
+- **Controller:** Route handlers in `backend/server.js`
 
-## Database Tables Used By The Running App
+## Database Schema
 
-- `users` stores admins, teachers, and students.
-- `classes` stores class/section data assigned to teachers.
-- `attendance` stores daily attendance using `student_id`, `class_id`, `date`, and `status`.
+The database uses three primary tables:
 
-The repo also contains modular `courses` and `enrollments` files/tables. The current running dashboard flow uses the existing `classes` and `users.class_id` data because that is where the live student dashboard data is stored.
+- **users** — stores admins, teachers, and students (with `role` and `class_id`)
+- **classes** — stores class/section data assigned to teachers
+- **attendance** — stores daily attendance records (student_id, class_id, date, status)
 
-Schema files:
-
-- DDL: `database/schema.sql`
-- ER diagram: `database/ERD.md`
+DDL script: `database/schema.sql`
+ER diagram: `database/ERD.md`
 
 ## Quick Start
 
-1. Open a terminal in the backend folder:
+1. Ensure PostgreSQL is running and create the database:
 
 ```bash
-cd "C:\Users\YIHUNE\OneDrive\Desktop\DIGITAL ATTENDANCE SYSTEM\backend"
+createdb -U postgres digital_attendance_db
+psql -U postgres -d digital_attendance_db -f database/schema.sql
 ```
 
-2. Install dependencies if needed:
+2. Install backend dependencies:
 
 ```bash
+cd backend
 npm install
 ```
 
-3. Make sure PostgreSQL is running and the database exists:
+3. Configure environment (edit `backend/.env` if needed):
 
-```bash
-psql -U postgres -d digital_attendance_db
+```
+PORT=5001
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=12345
+DB_NAME=digital_attendance_db
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRE=7d
 ```
 
-4. Start the backend:
+4. Start the server:
 
 ```bash
 node server.js
 ```
 
-5. Open the app:
-
-- Login: http://localhost:5001/login.html
-- Register: http://localhost:5001/register.html
-- Admin dashboard: http://localhost:5001/adminhome.html
-- Teacher dashboard: http://localhost:5001/teacherhome.html
-- Student dashboard: http://localhost:5001/studenthome.html
+5. Open the app at http://localhost:5001
 
 ## Demo Users
 
-Password for seeded users is usually `123`.
+All seeded users use password `123`.
 
-- Admin: `admin`
-- Teacher examples: `teacher1`, `yordanos`, `mikiyas`
-- Student examples: `student1`, `abdi_misgana`, `yihune`
+| Role | Username |
+|------|----------|
+| Admin | `admin` |
+| Teacher | `yordanos`, `mikiyas`, `adis`, `solomon`, `getahun`, `natnael`, `betelhem`, `betlehem`, `martha` |
+| Student | `abdi_misgana`, `yihune`, and 50+ more |
 
-Use the users that exist in your PostgreSQL database. The dashboard lists are loaded from the database, not from the README.
+## API Endpoints
 
-## Attendance Flow
+| Method | Endpoint | Access | Purpose |
+|--------|----------|--------|---------|
+| GET | `/api/health` | Public | Server health check |
+| POST | `/api/auth/login` | Public | Login |
+| POST | `/api/auth/register` | Public | Register user |
+| GET | `/api/users/students` | Admin/Teacher | List students |
+| GET | `/api/users/teachers` | Admin | List teachers |
+| DELETE | `/api/users/:id` | Admin | Deactivate user |
+| GET | `/api/classes` | Admin/Teacher | List classes |
+| POST | `/api/classes` | Admin | Create class |
+| DELETE | `/api/classes/:id` | Admin | Delete class |
+| GET | `/api/admin/stats` | Admin | Dashboard statistics |
+| GET | `/api/teacher/students?teacher_id=ID` | Teacher | Teacher's students |
+| GET | `/api/teacher/classes?teacher_id=ID` | Teacher | Teacher's classes |
+| POST | `/api/attendance/mark` | Teacher/Admin | Mark attendance |
+| GET | `/api/attendance/student/:id` | Student/Teacher | Attendance history |
+| GET | `/api/users/:id/courses` | Student | Course summaries |
 
-1. Login as a teacher.
-2. The teacher dashboard requests:
-
-```text
-GET /api/teacher/classes?teacher_id=TEACHER_ID
-GET /api/teacher/students?teacher_id=TEACHER_ID
-```
-
-3. Click present, late, or absent for a student.
-4. The frontend sends:
-
-```text
-POST /api/attendance/mark
-```
-
-5. The backend stores or updates the row in `attendance`.
-6. Login as that student.
-7. The student dashboard requests:
-
-```text
-GET /api/attendance/student/STUDENT_ID
-GET /api/users/STUDENT_ID/courses
-```
-
-8. The student sees the saved attendance history and attendance percentage.
-
-## Main API Endpoints
-
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| GET | `/api/health` | Check server status |
-| POST | `/api/auth/login` | Login |
-| POST | `/api/auth/register` | Register user |
-| GET | `/api/users/students` | Admin student list |
-| GET | `/api/users/teachers` | Admin teacher list |
-| GET | `/api/classes` | Admin class list |
-| GET | `/api/teacher/classes?teacher_id=ID` | Teacher assigned classes |
-| GET | `/api/teacher/students?teacher_id=ID` | Teacher student list |
-| POST | `/api/attendance/mark` | Mark attendance |
-| GET | `/api/attendance/student/:id` | Student attendance history |
-| GET | `/api/users/:id/courses` | Student class/course summary |
-
-Protected dashboard endpoints require:
-
-```text
-Authorization: Bearer YOUR_JWT_TOKEN
-```
+Protected endpoints require `Authorization: Bearer <jwt_token>` header.
 
 ## Security Features
 
-- Passwords are hashed with `bcryptjs`.
-- Login returns a signed JWT.
-- Protected routes verify JWT before accessing data.
-- Admin, teacher, and student routes enforce role-based authorization.
-- Request activity is written to `logs/requests.log`.
-- API routes use rate limiting.
-- Helmet is enabled for HTTP security headers.
+- Passwords hashed with bcryptjs (10 salt rounds)
+- JWT tokens with configurable expiration
+- Role-based access control (admin, teacher, student)
+- Rate limiting on API routes (300 requests per 15 min window)
+- Helmet HTTP security headers
+- Input validation on registration (email format, required fields)
+- File-based request logging
 
-## Troubleshooting
+## Attendance Flow
 
-### Port 5001 Already In Use
+1. Teacher logs in and selects a class
+2. Student list loads from the database
+3. Teacher clicks Present/Late/Absent for each student
+4. Attendance is saved to PostgreSQL with upsert logic
+5. Student logs in and views attendance history with percentage
 
-If you see this:
+## Extra Features (Beyond Course Scope)
 
-```text
-Error: listen EADDRINUSE: address already in use :::5001
-```
-
-It means another backend server is already running.
-
-Find the process:
-
-```powershell
-netstat -ano | Select-String ':5001'
-```
-
-Stop it:
-
-```powershell
-Stop-Process -Id PROCESS_ID -Force
-```
-
-Or run on a different port:
-
-```powershell
-$env:PORT=5002
-node server.js
-```
-
-Then open:
-
-```text
-http://localhost:5002/login.html
-```
-
-### Database Connection Problems
-
-Check the database settings in `backend/server.js`:
-
-```js
-host: 'localhost'
-port: 5432
-user: 'postgres'
-password: '12345'
-database: 'digital_attendance_db'
-```
-
-Make sure PostgreSQL is running and the database name/password match your computer.
-
-## Verification Checklist
-
-Run these after starting the server:
-
-```powershell
-Invoke-RestMethod http://localhost:5001/api/health
-Invoke-RestMethod "http://localhost:5001/api/teacher/students?teacher_id=2"
-Invoke-RestMethod "http://localhost:5001/api/users/11/courses"
-```
-
-Expected result:
-
-- Health returns `success: true`.
-- Teacher students returns a database list.
-- Student courses returns the student class/course summary.
-
-## Remaining Submission Risk
-
-The course requirement asks for at least 10 meaningful GitHub commits. This repository currently has fewer than 10 commits, so you should continue committing real, incremental work with descriptive messages before submission.
+- Dark/light theme toggle on all dashboards
+- Responsive design for mobile and desktop
+- Bulk attendance upsert (ON CONFLICT UPDATE)
+- Dashboard statistics for admin (student/teacher/course counts)
+- Student search filtering on teacher dashboard
+- Real-time student class assignment verification
