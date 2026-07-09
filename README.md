@@ -11,12 +11,48 @@ A full-stack web application for managing student attendance. Teachers can mark 
 - **Security:** Helmet, express-rate-limit, role-based authorization
 - **Logging:** File-based request logging to `logs/requests.log`
 
-## Architecture
+## Architecture (MVC Pattern)
 
-The application follows an MVC-like pattern:
-- **Model:** PostgreSQL tables and queries
-- **View:** HTML frontend files in `frontend/`
-- **Controller:** Route handlers in `backend/server.js`
+The application follows the MVC architectural pattern with clear separation:
+
+```
+backend/
+├── server.js              # Entry point (thin, starts the server)
+├── src/
+│   ├── app.js             # Express setup, middleware, route mounting
+│   ├── config/
+│   │   └── database.js    # PostgreSQL connection pool
+│   ├── middleware/
+│   │   └── auth.js        # JWT verification, role-based authorization
+│   ├── models/            # Data access layer (SQL queries)
+│   │   ├── userModel.js
+│   │   ├── classModel.js
+│   │   └── attendanceModel.js
+│   ├── controllers/       # Business logic (request/response handling)
+│   │   ├── authController.js
+│   │   ├── userController.js
+│   │   ├── classController.js
+│   │   ├── attendanceController.js
+│   │   └── adminController.js
+│   └── routes/            # Route definitions
+│       ├── authRoutes.js
+│       ├── userRoutes.js
+│       ├── classRoutes.js
+│       ├── attendanceRoutes.js
+│       ├── teacherRoutes.js
+│       └── adminRoutes.js
+frontend/                  # Views (HTML + CSS + JS)
+├── login.html
+├── register.html
+├── adminhome.html
+├── teacherhome.html
+└── studenthome.html
+```
+
+- **Models** — encapsulate all database queries (SQL)
+- **Views** — HTML/CSS/JS frontend files
+- **Controllers** — handle HTTP requests, call models, return responses
+- **Routes** — map URLs to controllers with middleware
 
 ## Database Schema
 
