@@ -7,17 +7,17 @@ const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const path = require('path');
 const fs = require('fs');
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 
 const pool = new Pool({
-    host: 'localhost',
-    port: 5432,
-    user: 'postgres',
-    password: '12345',
-    database: 'digital_attendance_db',
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT) || 5432,
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || '12345',
+    database: process.env.DB_NAME || 'digital_attendance_db',
 });
 
 const logDir = path.join(__dirname, '../logs');
