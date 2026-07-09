@@ -7,7 +7,8 @@ const adminController = {
                 SELECT
                     (SELECT COUNT(*) FROM users WHERE role = 'student' AND is_active = true) as total_students,
                     (SELECT COUNT(*) FROM users WHERE role = 'teacher' AND is_active = true) as total_teachers,
-                    (SELECT COUNT(*) FROM classes) as total_classes
+                    (SELECT COUNT(*) FROM classes) as total_classes,
+                    (SELECT COUNT(*) FROM classes) as total_courses
             `);
             res.json({ success: true, stats: result.rows[0] });
         } catch (error) {

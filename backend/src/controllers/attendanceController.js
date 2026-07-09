@@ -1,5 +1,6 @@
 const AttendanceModel = require('../models/attendanceModel');
 const UserModel = require('../models/userModel');
+const pool = require('../config/database');
 
 const attendanceController = {
     async markAttendance(req, res) {
@@ -20,15 +21,24 @@ const attendanceController = {
                 return res.status(400).json({ success: false, message: 'Student not found' });
             }
 
-            const finalClassId = targetClassId || student.class_id;
-            if (!finalClassId || parseInt(finalClassId) !== parseInt(student.class_id)) {
-                return res.status(400).json({ success: false, message: 'Student is not assigned to this class' });
+            if (!targetClassId) {
+                return res.status(400).json({ success: false, message: 'Class ID is required' });
+            }
+
+            const finalClassId = targetClassId;
+
+            const targetClass = await pool.query('SELECT section, teacher_id FROM classes WHERE id = $1', [finalClassId]);
+            if (!targetClass.rows[0]) {
+                return res.status(400).json({ success: false, message: 'Class not found' });
             }
 
             if (req.user.role === 'teacher') {
-                const cls = await UserModel.getClassTeacher(finalClassId);
-                if (!cls || parseInt(cls.teacher_id) !== parseInt(req.user.id)) {
+                if (parseInt(targetClass.rows[0].teacher_id) !== parseInt(req.user.id)) {
                     return res.status(403).json({ success: false, message: 'Access denied' });
+                }
+                const studentClass = await pool.query('SELECT section FROM classes WHERE id = $1', [student.class_id]);
+                if (!studentClass.rows[0] || studentClass.rows[0].section !== targetClass.rows[0].section) {
+                    return res.status(400).json({ success: false, message: 'Student is not assigned to this section' });
                 }
             }
 

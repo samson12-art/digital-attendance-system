@@ -1,10 +1,12 @@
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/userModel');
+const pool = require('../config/database');
 const { isValidEmail } = require('../middleware/auth');
 
 const authController = {
     async login(req, res) {
         try {
+            console.log(`[LOGIN] Request from ${req.ip}, method=${req.method}, url=${req.url}, content-type=${req.get('Content-Type')}, body=${JSON.stringify(req.body)}`);
             const { username, password } = req.body;
             if (!username || !password) {
                 return res.status(400).json({ success: false, message: 'Username and password required' });
@@ -45,7 +47,7 @@ const authController = {
 
     async register(req, res) {
         try {
-            const { username, password, email, full_name, role } = req.body;
+            const { username, password, email, full_name, role, class_id } = req.body;
             if (!username || !password || !email || !full_name || !role) {
                 return res.status(400).json({ success: false, message: 'All fields are required' });
             }
@@ -77,9 +79,44 @@ const authController = {
             }
 
             const hashedPassword = await UserModel.hashPassword(password);
-            const user = await UserModel.createUser(username, hashedPassword, email, full_name, role);
+            const user = await UserModel.createUser(username, hashedPassword, email, full_name, role, class_id);
 
             res.json({ success: true, message: 'Registration successful', user });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+
+    async changePassword(req, res) {
+        try {
+            const { currentPassword, newPassword } = req.body;
+            const userId = req.user.id;
+
+            if (!currentPassword || !newPassword) {
+                return res.status(400).json({ success: false, message: 'Current password and new password are required' });
+            }
+
+            if (newPassword.length < 6) {
+                return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+            }
+
+            const user = await UserModel.findByUsername(req.user.username);
+            if (!user) {
+                return res.status(404).json({ success: false, message: 'User not found' });
+            }
+
+            const isValid = await UserModel.comparePassword(currentPassword, user.password);
+            if (!isValid) {
+                return res.status(401).json({ success: false, message: 'Current password is incorrect' });
+            }
+
+            const hashedPassword = await UserModel.hashPassword(newPassword);
+            await pool.query(
+                'UPDATE users SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+                [hashedPassword, userId]
+            );
+
+            res.json({ success: true, message: 'Password changed successfully' });
         } catch (error) {
             res.status(500).json({ success: false, message: error.message });
         }

@@ -502,6 +502,81 @@
             .table-header { flex-direction: column; align-items: flex-start; }
             .pagination { flex-direction: column; align-items: center; }
         }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-overlay .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: var(--shadow-lg);
+            animation: modalIn 0.2s ease;
+        }
+        @keyframes modalIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-overlay .modal .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .modal-overlay .modal .modal-header h2 { font-size: 20px; font-weight: 700; }
+        .modal-overlay .modal .modal-header .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+        }
+        .modal-overlay .modal .modal-header .close-btn:hover { color: var(--text-primary); }
+        .modal-overlay .modal .form-group { margin-bottom: 16px; }
+        .modal-overlay .modal .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .modal-overlay .modal .form-group input,
+        .modal-overlay .modal .form-group select,
+        .modal-overlay .modal .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+        .modal-overlay .modal .form-group input:focus,
+        .modal-overlay .modal .form-group select:focus { border-color: var(--primary); }
+        .modal-overlay .modal .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 4px;
+        }
+        .modal-overlay .modal .form-actions .btn { flex: 1; justify-content: center; }
     </style>
 </head>
 <body>
@@ -789,6 +864,16 @@
                             </button>
                         </div>
                     </div>
+                    <div class="stat-card" style="cursor: pointer;">
+                        <div style="font-size: 24px;">🔑</div>
+                        <div class="label" style="font-size: 14px; font-weight: 600; margin-top: 8px;">Change Password</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">Update your login password</div>
+                        <div style="margin-top: 10px;">
+                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openChangePasswordModal();">
+                                <i class="fas fa-key"></i> Change Password
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <button class="btn btn-primary" onclick="switchPage('dashboard')" style="margin-top: 16px;">
                     <i class="fas fa-arrow-left"></i> Back to Dashboard
@@ -803,7 +888,7 @@
         // STUDENT DASHBOARD - FULL DATABASE INTEGRATION
         // ============================================
 
-        const API_URL = 'http://localhost:5001/api';
+        const API_URL = 'http://' + window.location.hostname + ':5001/api';
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         const token = localStorage.getItem('token');
 
@@ -1327,12 +1412,86 @@
             }
         }
 
+        // ===== CHANGE PASSWORD =====
+        function openChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.add('active');
+            document.getElementById('changePasswordForm').reset();
+            document.getElementById('changePasswordResult').innerHTML = '';
+        }
+
+        function closeChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.remove('active');
+        }
+
+        document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resultDiv = document.getElementById('changePasswordResult');
+            const currentPassword = document.getElementById('cpCurrentPassword').value;
+            const newPassword = document.getElementById('cpNewPassword').value;
+            const confirmPassword = document.getElementById('cpConfirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                resultDiv.innerHTML = '<div style="color:#EF4444;font-size:13px;">❌ Passwords do not match</div>';
+                return;
+            }
+            if (newPassword.length < 6) {
+                resultDiv.innerHTML = '<div style="color:#EF4444;font-size:13px;">❌ Password must be at least 6 characters</div>';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/auth/change-password`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    resultDiv.innerHTML = '<div style="color:#22C55E;font-size:13px;">✅ Password changed successfully!</div>';
+                    setTimeout(closeChangePasswordModal, 1500);
+                } else {
+                    resultDiv.innerHTML = `<div style="color:#EF4444;font-size:13px;">❌ ${data.message}</div>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = '<div style="color:#EF4444;font-size:13px;">❌ Failed to change password</div>';
+            }
+        });
+
         // ===== INIT =====
         loadData();
 
         console.log('📚 Student Dashboard loaded!');
         console.log('👤 User:', user);
     </script>
+
+    <!-- ===== CHANGE PASSWORD MODAL ===== -->
+    <div class="modal-overlay" id="changePasswordModal">
+        <div class="modal" style="max-width:420px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> Change Password</h2>
+                <button class="close-btn" onclick="closeChangePasswordModal()">&times;</button>
+            </div>
+            <form id="changePasswordForm">
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label>Current Password</label>
+                    <input type="password" id="cpCurrentPassword" placeholder="Enter current password" required style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary);">
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label>New Password</label>
+                    <input type="password" id="cpNewPassword" placeholder="Min 6 characters" required minlength="6" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary);">
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label>Confirm New Password</label>
+                    <input type="password" id="cpConfirmPassword" placeholder="Confirm new password" required style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary);">
+                </div>
+                <div id="changePasswordResult" style="margin-bottom:10px;"></div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeChangePasswordModal()" style="padding:10px 20px;border-radius:8px;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding:10px 20px;border-radius:8px;">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </body>
 </html>

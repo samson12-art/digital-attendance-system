@@ -4,11 +4,11 @@ const ClassModel = {
     getAll() {
         return pool.query(`
             SELECT c.*, u.full_name as teacher_name,
-                   COUNT(DISTINCT s.id) as student_count
+                (SELECT COUNT(DISTINCT s.id) FROM users s
+                 JOIN classes sc ON s.class_id = sc.id
+                 WHERE sc.section = c.section AND s.role = 'student' AND s.is_active = true) as student_count
             FROM classes c
             LEFT JOIN users u ON c.teacher_id = u.id
-            LEFT JOIN users s ON s.class_id = c.id AND s.role = 'student' AND s.is_active = true
-            GROUP BY c.id, u.full_name
             ORDER BY c.name, c.section
         `).then(r => r.rows);
     },

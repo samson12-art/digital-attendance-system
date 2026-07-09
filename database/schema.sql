@@ -510,7 +510,7 @@ BEGIN
     END LOOP;
     
     -- Enroll Section B students in Section B courses
-    FOR student_record IN SELECT id FROM users WHERE role = 'student' AND id > 100
+    FOR student_record IN SELECT id FROM users WHERE role = 'student' AND id > 55
     LOOP
         FOR course_record IN SELECT id FROM courses WHERE section_id = (SELECT id FROM sections WHERE section_code = 'B')
         LOOP

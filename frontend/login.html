@@ -103,7 +103,8 @@
             <p>Demo Credentials</p>
             <div class="row"><span><span class="role">Admin</span> <strong>admin</strong></span><span>Pass: <strong>123</strong></span></div>
             <div class="row"><span><span class="role">Teacher</span> <strong>yordanos</strong></span><span>Pass: <strong>123</strong></span></div>
-            <div class="row"><span><span class="role">Student</span> <strong>student1</strong></span><span>Pass: <strong>123</strong></span></div>
+            <div class="row"><span><span class="role">Student</span> <strong>abdi_misgana</strong></span><span>Pass: <strong>123</strong></span></div>
+            <div style="color:#64748b;font-size:11px;margin-top:4px;border-top:1px solid #374151;padding-top:4px;">All seeded students use password <strong>123</strong></div>
         </div>
 
         <div class="register-link">
@@ -112,7 +113,7 @@
     </div>
 
     <script>
-        const API_URL = window.location.origin + '/api';
+        const API_URL = 'http://' + window.location.hostname + ':5001/api';
 
         const pagesByRole = {
             admin: 'adminhome.html',
@@ -150,12 +151,17 @@
                 });
 
                 const text = await response.text();
-                console.log('Response status:', response.status, 'Body:', text.substring(0, 300));
+                console.log('Response status:', response.status, 'Body:', text.substring(0, 500));
                 let data;
                 try {
                     data = JSON.parse(text);
                 } catch (jsonError) {
-                    throw new Error(`Server returned: ${response.status} ${response.statusText} - not valid JSON`);
+                    console.error('Full response text:', text.substring(0, 1000));
+                    throw new Error(
+                        `Server returned: ${response.status} ${response.statusText}\n` +
+                        `URL: ${API_URL}/auth/login\n` +
+                        `Body preview: ${text.substring(0, 200)}`
+                    );
                 }
 
                 if (!response.ok || !data.success || !data.token || !data.user) {

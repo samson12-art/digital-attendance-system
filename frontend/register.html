@@ -159,9 +159,15 @@
         </div>
         <div class="input-group">
             <label>Register as</label>
-            <select id="role" required>
+            <select id="role" required onchange="toggleClassDropdown()">
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
+            </select>
+        </div>
+        <div class="input-group" id="classGroup" style="display:none;">
+            <label>Assign to Section / Class</label>
+            <select id="classId">
+                <option value="">Select Class (optional)</option>
             </select>
         </div>
         <button type="submit" class="register-btn" id="registerBtn">Register</button>
@@ -182,6 +188,7 @@ async function handleRegister(event) {
     const password = document.getElementById('password').value.trim();
     const confirmPassword = document.getElementById('confirmPassword').value.trim();
     const role = document.getElementById('role').value;
+    const classId = document.getElementById('classId').value || null;
     const errorMsg = document.getElementById('errorMsg');
     const successMsg = document.getElementById('successMsg');
     const registerBtn = document.getElementById('registerBtn');
@@ -214,7 +221,7 @@ async function handleRegister(event) {
     registerBtn.textContent = 'Registering...';
 
     try {
-        const API_URL = 'http://localhost:5001/api';
+        const API_URL = 'http://' + window.location.hostname + ':5001/api';
         const response = await fetch(`${API_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -223,7 +230,8 @@ async function handleRegister(event) {
                 password,
                 email,
                 full_name: fullName,
-                role
+                role,
+                class_id: classId
             })
         });
 
@@ -250,6 +258,29 @@ async function handleRegister(event) {
         registerBtn.textContent = 'Register';
     }
 }
+
+function toggleClassDropdown() {
+    const role = document.getElementById('role').value;
+    const group = document.getElementById('classGroup');
+    group.style.display = role === 'student' ? 'block' : 'none';
+}
+
+async function loadClasses() {
+    const select = document.getElementById('classId');
+    try {
+        const res = await fetch(window.location.origin + '/api/classes');
+        const data = await res.json();
+        if (data.success) {
+            data.classes.forEach(c => {
+                select.innerHTML += `<option value="${c.id}">${c.name} - Section ${c.section}</option>`;
+            });
+        }
+    } catch (e) {
+        console.error('Failed to load classes:', e);
+    }
+}
+
+loadClasses();
 
 // Clear error on input
 document.querySelectorAll('input').forEach(inp => {

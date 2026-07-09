@@ -1194,7 +1194,7 @@
         // ADMIN DASHBOARD - FULL CRUD + SETTINGS
         // ============================================
 
-        const API_URL = window.location.origin + '/api';
+        const API_URL = 'http://' + window.location.hostname + ':5001/api';
         const user = JSON.parse(localStorage.getItem('user') || '{}');
 
         let allStudents = [];
