@@ -109,24 +109,22 @@ CREATE TABLE IF NOT EXISTS enrollments (
 CREATE TABLE IF NOT EXISTS attendance (
     id SERIAL PRIMARY KEY,
     student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    course_id INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    class_id INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
     date DATE NOT NULL,
     status VARCHAR(10) NOT NULL DEFAULT 'absent' CHECK (status IN ('present', 'absent', 'late', 'excused')),
     check_in_time TIME,
     check_out_time TIME,
     marked_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
     remarks TEXT,
-    latitude DECIMAL(10, 8),
-    longitude DECIMAL(11, 8),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(student_id, course_id, date)
+    UNIQUE(student_id, class_id, date)
 );
 
 -- =============================================
 -- CREATE INDEXES FOR PERFORMANCE
 -- =============================================
 CREATE INDEX idx_attendance_student_id ON attendance(student_id);
-CREATE INDEX idx_attendance_course_id ON attendance(course_id);
+CREATE INDEX idx_attendance_class_id ON attendance(class_id);
 CREATE INDEX idx_attendance_date ON attendance(date);
 CREATE INDEX idx_attendance_status ON attendance(status);
 CREATE INDEX idx_enrollments_student_id ON enrollments(student_id);
@@ -159,6 +157,11 @@ CREATE TRIGGER update_users_updated_at
 
 CREATE TRIGGER update_courses_updated_at 
     BEFORE UPDATE ON courses 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_classes_updated_at 
+    BEFORE UPDATE ON classes 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
@@ -521,8 +524,7 @@ END $$;
 -- =============================================
 -- INSERT SAMPLE ATTENDANCE RECORDS
 -- =============================================
--- Add sample attendance for some students
-INSERT INTO attendance (student_id, course_id, date, status, check_in_time, marked_by)
+INSERT INTO attendance (student_id, class_id, date, status, check_in_time, marked_by)
 SELECT 
     s.id,
     c.id,
@@ -530,23 +532,22 @@ SELECT
     (ARRAY['present', 'present', 'present', 'absent', 'late'])[floor(random() * 5 + 1)],
     (TIME '08:00' + (random() * 120)::int * INTERVAL '1 minute')::TIME,
     (SELECT id FROM users WHERE role = 'teacher' LIMIT 1)
-FROM users s, courses c
-WHERE s.role = 'student' AND c.id = (SELECT id FROM courses LIMIT 1)
+FROM users s, classes c
+WHERE s.role = 'student' AND c.id = 1
 LIMIT 20;
 
 -- =============================================
 -- CREATE VIEWS FOR COMMON QUERIES
 -- =============================================
 
--- View: Student Attendance Summary with Course Details
+-- View: Student Attendance Summary with Class Details
 CREATE OR REPLACE VIEW v_student_attendance_summary AS
 SELECT 
     u.id as student_id,
     u.full_name as student_name,
-    c.id as course_id,
-    c.course_code,
-    c.course_name,
-    s.section_code,
+    c.id as class_id,
+    c.name as class_name,
+    c.section,
     COUNT(a.id) as total_classes,
     COUNT(a.id) FILTER (WHERE a.status = 'present') as present_count,
     COUNT(a.id) FILTER (WHERE a.status = 'absent') as absent_count,
@@ -554,84 +555,58 @@ SELECT
     COUNT(a.id) FILTER (WHERE a.status = 'excused') as excused_count,
     ROUND(CAST(COUNT(a.id) FILTER (WHERE a.status IN ('present', 'late')) AS DECIMAL) / NULLIF(COUNT(a.id), 0) * 100, 2) as attendance_percentage
 FROM users u
-JOIN enrollments e ON u.id = e.student_id
-JOIN courses c ON e.course_id = c.id
-LEFT JOIN sections s ON c.section_id = s.id
-LEFT JOIN attendance a ON u.id = a.student_id AND c.id = a.course_id
+JOIN classes c ON u.class_id = c.id
+LEFT JOIN attendance a ON u.id = a.student_id AND c.id = a.class_id
 WHERE u.role = 'student'
-GROUP BY u.id, u.full_name, c.id, c.course_code, c.course_name, s.section_code;
+GROUP BY u.id, u.full_name, c.id, c.name, c.section;
 
--- View: Course Schedule with Teacher Info
-CREATE OR REPLACE VIEW v_course_schedule AS
-SELECT 
-    c.id as course_id,
-    c.course_code,
-    c.course_name,
-    s.section_code,
-    u.full_name as teacher_name,
-    cs.day,
-    cs.start_time,
-    cs.end_time,
-    cs.room,
-    cs.is_lab
-FROM courses c
-LEFT JOIN sections s ON c.section_id = s.id
-LEFT JOIN users u ON c.teacher_id = u.id
-LEFT JOIN course_schedules cs ON c.id = cs.course_id
-ORDER BY c.course_code, cs.day;
-
--- View: Daily Attendance Report
+-- View: Class Attendance Report
 CREATE OR REPLACE VIEW v_daily_attendance_report AS
 SELECT 
     a.date,
-    c.course_code,
-    c.course_name,
-    s.section_code,
+    c.name as class_name,
+    c.section,
     COUNT(DISTINCT a.student_id) as total_students,
     COUNT(DISTINCT a.student_id) FILTER (WHERE a.status = 'present') as present,
     COUNT(DISTINCT a.student_id) FILTER (WHERE a.status = 'absent') as absent,
     COUNT(DISTINCT a.student_id) FILTER (WHERE a.status = 'late') as late,
     ROUND(CAST(COUNT(DISTINCT a.student_id) FILTER (WHERE a.status = 'present') AS DECIMAL) / NULLIF(COUNT(DISTINCT a.student_id), 0) * 100, 2) as attendance_rate
 FROM attendance a
-JOIN courses c ON a.course_id = c.id
-LEFT JOIN sections s ON c.section_id = s.id
-GROUP BY a.date, c.course_code, c.course_name, s.section_code
-ORDER BY a.date DESC, c.course_code;
+JOIN classes c ON a.class_id = c.id
+GROUP BY a.date, c.name, c.section
+ORDER BY a.date DESC, c.name;
 
 -- =============================================
 -- CREATE FUNCTIONS FOR COMMON OPERATIONS
 -- =============================================
 
--- Function: Get attendance percentage for a student
+-- Function: Get attendance percentage for a student by class
 CREATE OR REPLACE FUNCTION get_student_attendance_percentage(p_student_id INTEGER)
 RETURNS TABLE(
-    course_id INTEGER,
-    course_code VARCHAR,
-    course_name VARCHAR,
-    section_code VARCHAR,
+    class_id INTEGER,
+    class_name VARCHAR,
+    section VARCHAR,
     attendance_percentage DECIMAL
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT 
         c.id,
-        c.course_code,
-        c.course_name,
-        s.section_code,
+        c.name,
+        c.section,
         ROUND(CAST(COUNT(a.id) FILTER (WHERE a.status IN ('present', 'late')) AS DECIMAL) / NULLIF(COUNT(a.id), 0) * 100, 2)
-    FROM courses c
-    JOIN enrollments e ON c.id = e.course_id
-    LEFT JOIN sections s ON c.section_id = s.id
-    LEFT JOIN attendance a ON c.id = a.course_id AND a.student_id = p_student_id
-    WHERE e.student_id = p_student_id
-    GROUP BY c.id, c.course_code, c.course_name, s.section_code;
+    FROM classes c
+    JOIN users u ON u.class_id = c.id
+    LEFT JOIN attendance a ON c.id = a.class_id AND a.student_id = p_student_id
+    WHERE u.id = p_student_id AND u.role = 'student'
+    GROUP BY c.id, c.name, c.section;
 END;
 $$ LANGUAGE plpgsql;
 
 -- Function: Mark attendance for a student
 CREATE OR REPLACE FUNCTION mark_attendance(
     p_student_id INTEGER,
-    p_course_id INTEGER,
+    p_class_id INTEGER,
     p_status VARCHAR,
     p_marked_by INTEGER,
     p_remarks TEXT DEFAULT NULL
@@ -640,9 +615,9 @@ RETURNS INTEGER AS $$
 DECLARE
     v_attendance_id INTEGER;
 BEGIN
-    INSERT INTO attendance (student_id, course_id, date, status, check_in_time, marked_by, remarks)
-    VALUES (p_student_id, p_course_id, CURRENT_DATE, p_status, CURRENT_TIME, p_marked_by, p_remarks)
-    ON CONFLICT (student_id, course_id, date) 
+    INSERT INTO attendance (student_id, class_id, date, status, check_in_time, marked_by, remarks)
+    VALUES (p_student_id, p_class_id, CURRENT_DATE, p_status, CURRENT_TIME, p_marked_by, p_remarks)
+    ON CONFLICT (student_id, class_id, date) 
     DO UPDATE SET 
         status = EXCLUDED.status,
         check_in_time = EXCLUDED.check_in_time,
