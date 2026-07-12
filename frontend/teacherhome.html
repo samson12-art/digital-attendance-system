@@ -5,566 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .page-content { animation: fadeIn 0.25s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --bg-primary: #0a0a1a;
-            --bg-secondary: #1a1a2e;
-            --bg-card: #16213e;
-            --bg-hover: #1a2744;
-            --bg-sidebar: rgba(15,15,26,0.98);
-            --text-primary: #ffffff;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --border-color: rgba(255,255,255,0.06);
-            --shadow: 0 4px 24px rgba(0,0,0,0.3);
-            --shadow-lg: 0 8px 40px rgba(0,0,0,0.4);
-            --primary: #4F46E5;
-            --success: #22C55E;
-            --danger: #EF4444;
-            --warning: #F59E0B;
-            --sidebar-width: 250px;
-            --radius: 12px;
-            --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        body.light-mode {
-            --bg-primary: #f1f5f9;
-            --bg-secondary: #ffffff;
-            --bg-card: #ffffff;
-            --bg-hover: #f8fafc;
-            --bg-sidebar: rgba(255,255,255,0.98);
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #94a3b8;
-            --border-color: rgba(0,0,0,0.06);
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            transition: var(--transition);
-        }
-        /* ===== SIDEBAR ===== */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--bg-sidebar);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            z-index: 100;
-            transition: var(--transition);
-            backdrop-filter: blur(20px);
-            overflow-y: auto;
-        }
-        .sidebar::-webkit-scrollbar { width: 4px; }
-        .sidebar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
-        .sidebar-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 20px 20px 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .sidebar-logo .logo-icon { font-size: 28px; }
-        .sidebar-logo .logo-text { font-weight: 800; font-size: 18px; }
-        .sidebar-logo .logo-text span { color: var(--primary); }
-        .sidebar-logo .logo-badge {
-            font-size: 9px;
-            background: var(--primary);
-            color: #fff;
-            padding: 2px 10px;
-            border-radius: 20px;
-            margin-left: auto;
-            font-weight: 600;
-        }
-        .sidebar-nav { flex: 1; padding: 16px 12px; }
-        .nav-section { margin-bottom: 20px; }
-        .nav-label {
-            display: block;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            color: var(--text-muted);
-            padding: 0 12px 8px;
-            font-weight: 600;
-        }
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            color: var(--text-secondary);
-            transition: var(--transition);
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            width: 100%;
-            text-align: left;
-            margin-bottom: 2px;
-        }
-        .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
-        .nav-item.active { background: rgba(79,70,229,0.12); color: var(--primary); }
-        .nav-item i { width: 22px; text-align: center; font-size: 16px; }
-        .nav-item .nav-badge {
-            margin-left: auto;
-            background: var(--danger);
-            color: #fff;
-            font-size: 9px;
-            padding: 1px 8px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-        .sidebar-footer {
-            padding: 16px 16px 20px;
-            border-top: 1px solid var(--border-color);
-        }
-        .sidebar-user {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .sidebar-user .avatar {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), #7C3AED);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 15px;
-            color: #fff;
-        }
-        .sidebar-user .user-info { flex: 1; }
-        .sidebar-user .user-info .name { font-size: 14px; font-weight: 600; }
-        .sidebar-user .user-info .role { font-size: 11px; color: var(--text-muted); }
-        /* ===== MAIN ===== */
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 28px;
-            height: 64px;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            backdrop-filter: blur(12px);
-            transition: var(--transition);
-        }
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .topbar-left .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--text-primary);
-            font-size: 20px;
-            cursor: pointer;
-        }
-        .topbar-left .page-title { font-size: 20px; font-weight: 700; }
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .topbar-right .search-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 50px;
-            padding: 6px 16px;
-            transition: var(--transition);
-        }
-        .topbar-right .search-box:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.15); }
-        .topbar-right .search-box input {
-            background: none;
-            border: none;
-            outline: none;
-            color: var(--text-primary);
-            font-size: 13px;
-            width: 160px;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        .topbar-right .search-box input::placeholder { color: var(--text-muted); }
-        .topbar-right .search-box i { color: var(--text-muted); }
-        .topbar-right .date-time {
-            color: var(--text-muted);
-            font-size: 13px;
-            background: var(--bg-card);
-            padding: 6px 16px;
-            border-radius: 50px;
-            border: 1px solid var(--border-color);
-        }
-        .theme-toggle {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            color: var(--text-secondary);
-            font-size: 16px;
-        }
-        .theme-toggle:hover { background: var(--bg-hover); transform: rotate(15deg); }
-        .dashboard-content { padding: 24px 28px; flex: 1; }
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .page-header h2 { font-size: 24px; font-weight: 700; }
-        .page-header .subtitle { color: var(--text-secondary); font-size: 14px; }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .stat-card {
-            background: var(--bg-card);
-            padding: 18px 20px;
-            border-radius: var(--radius);
-            border: 1px solid var(--border-color);
-            transition: var(--transition);
-        }
-        .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-        .stat-card .number { font-size: 28px; font-weight: 700; }
-        .stat-card .label { color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
-        .stat-card .number.green { color: var(--success); }
-        .stat-card .number.red { color: var(--danger); }
-        .stat-card .number.blue { color: var(--primary); }
-        .stat-card .number.yellow { color: var(--warning); }
-        /* ===== FILTERS ===== */
-        .filters {
-            background: var(--bg-card);
-            padding: 16px 20px;
-            border-radius: var(--radius);
-            border: 1px solid var(--border-color);
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            align-items: center;
-            transition: var(--transition);
-        }
-        .filters label {
-            color: var(--text-secondary);
-            font-size: 13px;
-            font-weight: 500;
-        }
-        .filters select {
-            padding: 8px 14px;
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 13px;
-            min-width: 150px;
-            transition: var(--transition);
-        }
-        .filters select:focus { outline: none; border-color: var(--primary); }
-        .filters select option { background: var(--bg-secondary); color: var(--text-primary); }
-        .btn {
-            padding: 8px 18px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 13px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #6366F1; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(79,70,229,0.3); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-success:hover { background: #16A34A; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: #DC2626; }
-        .btn-warning { background: var(--warning); color: white; }
-        .btn-warning:hover { background: #D97706; }
-        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); }
-        .btn-outline:hover { background: var(--bg-hover); color: var(--text-primary); }
-        .btn-sm { padding: 4px 12px; font-size: 11px; }
-        .btn-xs { padding: 2px 8px; font-size: 10px; border-radius: 4px; }
-        /* ===== TABLE ===== */
-        .table-container {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-            transition: var(--transition);
-        }
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .table-header h3 { font-size: 16px; font-weight: 600; }
-        .table-header .total { color: var(--text-secondary); font-size: 14px; }
-        .table-wrapper { overflow-x: auto; padding: 0 4px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        table thead { background: var(--bg-hover); }
-        table th {
-            text-align: left;
-            padding: 12px 16px;
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            vertical-align: middle;
-        }
-        table tr:hover td { background: var(--bg-hover); }
-        .badge {
-            padding: 3px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        .badge-present { background: rgba(34,197,94,0.15); color: var(--success); }
-        .badge-absent { background: rgba(239,68,68,0.15); color: var(--danger); }
-        .badge-late { background: rgba(245,158,11,0.15); color: var(--warning); }
-        .action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
-        .action-btns .btn {
-            font-size: 11px;
-            padding: 3px 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: var(--transition);
-        }
-        .action-btns .btn-present { background: rgba(34,197,94,0.15); color: var(--success); }
-        .action-btns .btn-present:hover { background: var(--success); color: white; }
-        .action-btns .btn-absent { background: rgba(239,68,68,0.15); color: var(--danger); }
-        .action-btns .btn-absent:hover { background: var(--danger); color: white; }
-        .action-btns .btn-late { background: rgba(245,158,11,0.15); color: var(--warning); }
-        .action-btns .btn-late:hover { background: var(--warning); color: white; }
-        .action-btns .btn-late-time {
-            background: rgba(245,158,11,0.15);
-            color: var(--warning);
-            border: 1px dashed var(--warning);
-        }
-        .action-btns .btn-late-time:hover { background: var(--warning); color: white; }
-        .pagination {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 20px;
-            border-top: 1px solid var(--border-color);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .pagination .info { color: var(--text-secondary); font-size: 13px; }
-        .pagination .pages { display: flex; gap: 4px; }
-        .pagination .pages button {
-            padding: 6px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            background: transparent;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 13px;
-        }
-        .pagination .pages button:hover,
-        .pagination .pages button.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        .empty { text-align: center; padding: 40px; color: var(--text-secondary); }
-        .empty .icon { font-size: 48px; display: block; margin-bottom: 12px; }
-        .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
-        .spinner {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 3px solid var(--border-color);
-            border-radius: 50%;
-            border-top-color: var(--primary);
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        /* ===== LATE TIME MODAL ===== */
-        .late-time-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        .late-time-modal.active { display: flex; }
-        .late-time-modal .modal-content {
-            background: var(--bg-card);
-            padding: 30px;
-            border-radius: 16px;
-            max-width: 400px;
-            width: 90%;
-            border: 1px solid var(--border-color);
-        }
-        .late-time-modal .modal-content h3 { margin-bottom: 16px; color: var(--warning); }
-        .late-time-modal .modal-content input {
-            width: 100%;
-            padding: 10px 14px;
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
-        .late-time-modal .modal-content .modal-actions {
-            display: flex;
-            gap: 10px;
-        }
-        .late-time-modal .modal-content .modal-actions .btn { flex: 1; justify-content: center; }
-        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); width: 280px; }
-            .sidebar.open { transform: translateX(0); }
-            .topbar-left .menu-toggle { display: block; }
-            .main-content { margin-left: 0; }
-            .topbar { padding: 0 16px; flex-wrap: wrap; height: auto; padding: 10px 16px; }
-            .topbar-right { flex-wrap: wrap; gap: 8px; }
-            .topbar-right .search-box input { width: 100px; }
-            .topbar-right .date-time { display: none; }
-            .dashboard-content { padding: 16px; }
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-            .filters { flex-direction: column; align-items: stretch; }
-            .filters select { width: 100%; min-width: unset; }
-        }
-        @media (max-width: 480px) {
-            .stats-grid { grid-template-columns: 1fr; }
-            .table-header { flex-direction: column; align-items: flex-start; }
-            .pagination { flex-direction: column; align-items: center; }
-        }
-
-        /* ===== MODAL OVERLAY ===== */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal-overlay .modal {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 24px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: var(--shadow-lg);
-            animation: modalIn 0.2s ease;
-        }
-        @keyframes modalIn {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        .modal-overlay .modal .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        .modal-overlay .modal .modal-header h2 { font-size: 20px; font-weight: 700; }
-        .modal-overlay .modal .modal-header .close-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 24px;
-            cursor: pointer;
-            padding: 0 4px;
-            line-height: 1;
-        }
-        .modal-overlay .modal .modal-header .close-btn:hover { color: var(--text-primary); }
-        .modal-overlay .modal .form-group { margin-bottom: 16px; }
-        .modal-overlay .modal .form-group label {
-            display: block;
-            color: var(--text-secondary);
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-        }
-        .modal-overlay .modal .form-group input,
-        .modal-overlay .modal .form-group select,
-        .modal-overlay .modal .form-group textarea {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-card);
-            color: var(--text-primary);
-            font-size: 14px;
-            outline: none;
-        }
-        .modal-overlay .modal .form-group input:focus,
-        .modal-overlay .modal .form-group select:focus { border-color: var(--primary); }
-        .modal-overlay .modal .form-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 4px;
-        }
-        .modal-overlay .modal .form-actions .btn { flex: 1; justify-content: center; }
-    </style>
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
 
@@ -584,7 +25,6 @@
     <!-- ===== SIDEBAR ===== -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-            <span class="logo-icon">📚</span>
             <div class="logo-text">Digital <span>Attendance</span></div>
             <span class="logo-badge">Teacher</span>
         </div>
@@ -608,6 +48,18 @@
                 </button>
                 <button class="nav-item" data-page="reports" onclick="switchPage('reports')">
                     <i class="fas fa-chart-bar"></i> Reports
+                </button>
+            </div>
+            <div class="nav-section">
+                <span class="nav-label">Tools</span>
+                <button class="nav-item" data-page="qrcode" onclick="switchPage('qrcode')">
+                    <i class="fas fa-qrcode"></i> QR Code
+                </button>
+                <button class="nav-item" data-page="export" onclick="switchPage('export')">
+                    <i class="fas fa-file-export"></i> Export
+                </button>
+                <button class="nav-item" data-page="notifications" onclick="switchPage('notifications')">
+                    <i class="fas fa-envelope"></i> Alerts
                 </button>
             </div>
             <div class="nav-section">
@@ -731,7 +183,7 @@
                 </div>
 
                 <!-- ===== MY SUBJECTS ===== -->
-                <div class="table-container" id="subjectsTable" style="margin-bottom:20px;">
+                <div class="table-container active" id="subjectsTable" style="margin-bottom:20px;">
                     <div class="table-header">
                         <h3>📖 My Subjects</h3>
                         <span class="total">Total: <strong id="subjectTotalCount">0</strong> subjects</span>
@@ -760,7 +212,7 @@
                 </div>
 
                 <!-- ===== STUDENTS TABLE ===== -->
-                <div class="table-container" id="studentsTableContainer">
+                <div class="table-container active" id="studentsTableContainer">
                     <div class="table-header">
                         <h3>📋 Students</h3>
                         <span class="total">Total: <strong id="studentTotalCount">0</strong> students</span>
@@ -769,18 +221,19 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th>#</th>
+                                     <th>#</th>
                                     <th>ID</th>
                                     <th>Username</th>
                                     <th>Full Name</th>
                                     <th>Class</th>
                                     <th>Status</th>
+                                    <th>Eligibility</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="studentsTableBody">
                                 <tr>
-                                    <td colspan="7">
+                                    <td colspan="8">
                                         <div class="loading"><div class="spinner"></div> Loading students...</div>
                                     </td>
                                 </tr>
@@ -822,12 +275,13 @@
                                     <th>Full Name</th>
                                     <th>Class</th>
                                     <th>Status</th>
+                                    <th>Eligibility</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="studentsTableBody2">
                                 <tr>
-                                    <td colspan="7"><div class="loading"><div class="spinner"></div> Loading...</div></td>
+                                    <td colspan="8"><div class="loading"><div class="spinner"></div> Loading...</div></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1017,6 +471,110 @@
                 </div>
             </div>
 
+            <!-- ===== QR CODE PAGE ===== -->
+            <div id="page-qrcode" class="page-content" style="display:none;">
+                <div class="page-header">
+                    <div>
+                        <h2>QR Code Attendance</h2>
+                        <p class="subtitle">Generate time-based QR codes for student check-in</p>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                    <div class="table-container" style="display:block;">
+                        <div style="padding:24px;">
+                            <h3 style="margin-bottom:16px;">Generate QR Code</h3>
+                            <div class="form-group">
+                                <label>Select Class</label>
+                                <select id="teacherQrClassSelect">
+                                    <option value="">Select Class</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Validity (seconds)</label>
+                                <input type="number" id="teacherQrValidity" value="20" min="10" max="300" style="width:100%;padding:8px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);">
+                            </div>
+                            <div class="form-group">
+                                <label>Classroom Location (GPS)</label>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                                    <input type="number" id="teacherQrLat" placeholder="Latitude" step="any" style="width:100%;padding:8px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);">
+                                    <input type="number" id="teacherQrLng" placeholder="Longitude" step="any" style="width:100%;padding:8px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);">
+                                </div>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="teacherGetLocation()" style="width:100%;justify-content:center;"><i class="fas fa-crosshairs"></i> Use My Current Location</button>
+                                <div id="teacherLocationStatus" style="font-size:12px;margin-top:6px;color:var(--text-muted);"></div>
+                            </div>
+                            <button class="btn btn-primary" onclick="teacherGenerateQR()"><i class="fas fa-qrcode"></i> Generate</button>
+                            <div id="teacherQrCodeDisplay" style="margin-top:16px;text-align:center;"></div>
+                            <div id="teacherQrCodeInfo" style="margin-top:12px;text-align:center;font-size:13px;color:var(--text-secondary);"></div>
+                        </div>
+                    </div>
+                    <div class="table-container" style="display:block;">
+                        <div style="padding:24px;">
+                            <h3 style="margin-bottom:16px;">Current Code</h3>
+                            <div id="teacherQrCodeText" style="font-size:36px;font-weight:800;text-align:center;letter-spacing:8px;color:var(--primary);padding:24px;background:var(--bg-secondary);border-radius:12px;border:2px dashed var(--border-color);">----------</div>
+                            <div id="teacherQrCountdown" style="text-align:center;margin-top:12px;font-size:14px;color:var(--warning);"></div>
+                            <button class="btn btn-outline btn-sm" onclick="teacherGenerateQR()" style="margin-top:12px;width:100%;justify-content:center;"><i class="fas fa-sync-alt"></i> Refresh Code</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== EXPORT PAGE ===== -->
+            <div id="page-export" class="page-content" style="display:none;">
+                <div class="page-header">
+                    <div>
+                        <h2>Export Data</h2>
+                        <p class="subtitle">Download attendance sheets and reports</p>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+                    <div class="table-container" style="display:block;">
+                        <div style="padding:24px;">
+                            <h3 style="margin-bottom:8px;">Attendance Records</h3>
+                            <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">Download attendance in Excel or PDF</p>
+                            <div style="display:flex;gap:8px;">
+                                <button class="btn btn-success btn-sm" onclick="teacherExport('attendance','excel')"><i class="fas fa-file-excel"></i> Excel</button>
+                                <button class="btn btn-danger btn-sm" onclick="teacherExport('attendance','pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-container" style="display:block;">
+                        <div style="padding:24px;">
+                            <h3 style="margin-bottom:8px;">Student List</h3>
+                            <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">Export your students data</p>
+                            <div style="display:flex;gap:8px;">
+                                <button class="btn btn-success btn-sm" onclick="teacherExport('students','excel')"><i class="fas fa-file-excel"></i> Excel</button>
+                                <button class="btn btn-danger btn-sm" onclick="teacherExport('students','pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== NOTIFICATIONS PAGE ===== -->
+            <div id="page-notifications" class="page-content" style="display:none;">
+                <div class="page-header">
+                    <div>
+                        <h2>Attendance Alerts</h2>
+                        <p class="subtitle">Send attendance alerts and low attendance warnings</p>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:16px;">
+                    <div class="table-container" style="display:block;">
+                        <div style="padding:24px;">
+                            <h3 style="margin-bottom:8px;">Low Attendance Check</h3>
+                            <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">View students below attendance threshold and send warnings</p>
+                            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                                <input type="number" id="teacherThreshold" value="75" min="0" max="100" style="width:60px;padding:6px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:13px;">
+                                <span style="font-size:13px;color:var(--text-muted);">% threshold</span>
+                                <button class="btn btn-primary btn-sm" onclick="teacherViewLowAttendance()"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn btn-warning btn-sm" onclick="teacherSendBulkWarnings()"><i class="fas fa-paper-plane"></i> Send All</button>
+                            </div>
+                            <div id="teacherLowAttendanceResults" style="margin-top:16px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -1041,7 +599,12 @@
         document.getElementById('userName').textContent = user.full_name || 'Teacher';
         document.getElementById('teacherName').textContent = user.full_name || 'Teacher';
         const avatarEl = document.getElementById('userAvatar');
-        if (avatarEl) avatarEl.textContent = (user.full_name || 'T').charAt(0).toUpperCase();
+        if (avatarEl) {
+            avatarEl.textContent = (user.full_name || 'T').charAt(0).toUpperCase();
+            if (user.profile_photo) {
+                avatarEl.innerHTML = `<img src="/uploads/photos/${user.profile_photo}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+            }
+        }
 
         if (!token || !user.id) {
             window.location.href = 'login.html';
@@ -1049,7 +612,12 @@
 
         // Populate profile page
         const profileAvatar = document.getElementById('profileAvatar');
-        if (profileAvatar) profileAvatar.textContent = (user.full_name || 'T').charAt(0).toUpperCase();
+        if (profileAvatar) {
+            profileAvatar.textContent = (user.full_name || 'T').charAt(0).toUpperCase();
+            if (user.profile_photo) {
+                profileAvatar.innerHTML = `<img src="/uploads/photos/${user.profile_photo}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+            }
+        }
         const profileName = document.getElementById('profileName');
         if (profileName) profileName.textContent = user.full_name || 'Teacher';
         const profileUsername = document.getElementById('profileUsername');
@@ -1058,6 +626,35 @@
         if (profileEmail) profileEmail.textContent = user.email || '-';
         const profileFullName = document.getElementById('profileFullName');
         if (profileFullName) profileFullName.textContent = user.full_name || '-';
+
+        async function refreshProfile() {
+            try {
+                const res = await fetch(`${API_URL}/users/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success && data.user) {
+                    const fresh = data.user;
+                    let changed = false;
+                    if (fresh.profile_photo && fresh.profile_photo !== user.profile_photo) { user.profile_photo = fresh.profile_photo; changed = true; }
+                    if (fresh.full_name && fresh.full_name !== user.full_name) { user.full_name = fresh.full_name; changed = true; }
+                    if (fresh.email && fresh.email !== user.email) { user.email = fresh.email; changed = true; }
+                    if (changed) {
+                        localStorage.setItem('user', JSON.stringify(user));
+                        if (fresh.profile_photo) {
+                            const photoUrl = `/uploads/photos/${fresh.profile_photo}`;
+                            const av = document.getElementById('userAvatar');
+                            if (av) av.innerHTML = `<img src="${photoUrl}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                            const pa = document.getElementById('profileAvatar');
+                            if (pa) pa.innerHTML = `<img src="${photoUrl}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                        }
+                        if (fresh.full_name) {
+                            document.getElementById('userName').textContent = fresh.full_name;
+                            document.getElementById('teacherName').textContent = fresh.full_name;
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+        refreshProfile();
 
         // Sync settings theme toggle
         const settingsIcon = document.getElementById('settingsThemeIcon');
@@ -1127,6 +724,22 @@
             const target = document.getElementById('page-' + page);
             if (target) target.style.display = 'block';
 
+            document.querySelectorAll('.table-container').forEach(el => el.classList.remove('active'));
+
+            if (page === 'dashboard') {
+                document.getElementById('subjectsTable').classList.add('active');
+                document.getElementById('studentsTableContainer').classList.add('active');
+            } else if (page === 'students') {
+                const stPage = document.getElementById('page-students');
+                if (stPage) stPage.querySelector('.table-container').classList.add('active');
+            } else if (page === 'attendance') {
+                const attPage = document.getElementById('page-attendance');
+                if (attPage) attPage.querySelector('.table-container').classList.add('active');
+            } else if (page === 'classes') {
+                const clsPage = document.getElementById('page-classes');
+                if (clsPage) clsPage.querySelector('.table-container').classList.add('active');
+            }
+
             // Show filters only on pages where attendance marking is relevant
             const filters = document.getElementById('filters');
             if (filters) {
@@ -1140,12 +753,17 @@
                 classes: 'My Classes',
                 reports: 'Reports',
                 profile: 'Profile',
-                settings: 'Settings'
+                settings: 'Settings',
+                qrcode: 'QR Code Attendance',
+                export: 'Export Data',
+                notifications: 'Attendance Alerts'
             };
             document.getElementById('pageTitle').textContent = titles[page] || 'Teacher Dashboard';
 
             if (page === 'dashboard' || page === 'classes') renderSubjects();
             if (page === 'dashboard' || page === 'students' || page === 'attendance') renderTable();
+            if (page === 'qrcode') populateTeacherQrClasses();
+            if (page === 'export') populateTeacherQrClasses();
         }
 
         // ===== LOAD DATA =====
@@ -1155,7 +773,7 @@
 
         // ===== LOAD STUDENTS =====
         async function loadStudents() {
-            const loadingFull = `<tr><td colspan="7"><div class="loading"><div class="spinner"></div> Loading students...</div></td></tr>`;
+            const loadingFull = `<tr><td colspan="8"><div class="loading"><div class="spinner"></div> Loading students...</div></td></tr>`;
             const loadingShort = `<tr><td colspan="6"><div class="loading"><div class="spinner"></div> Loading students...</div></td></tr>`;
 
             const tbodies = [
@@ -1201,13 +819,31 @@
                 console.log('📊 API Response:', data);
 
                 if (!data.success) {
-                    const errorHtml = `<tr><td colspan="7"><div class="empty"><span class="icon">❌</span>${data.message || 'Failed to load students'}</div></td></tr>`;
+                    const errorHtml = `<tr><td colspan="8"><div class="empty"><span class="icon">❌</span>${data.message || 'Failed to load students'}</div></td></tr>`;
                     tbodies.forEach(el => { if (el) el.innerHTML = errorHtml; });
                     if (tbody3) tbody3.innerHTML = `<tr><td colspan="6">${errorHtml}</td></tr>`;
                     return;
                 }
 
                 allStudents = data.students || [];
+                filteredStudents = [...allStudents];
+
+                // Fetch eligibility for each student
+                const eligibilityMap = {};
+                const uniqueStudentIds = [...new Set(allStudents.map(s => s.id))];
+                await Promise.all(uniqueStudentIds.map(async (sid) => {
+                    try {
+                        const elRes = await fetch(`${API_URL}/users/${sid}/eligibility`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        const elData = await elRes.json();
+                        if (elData.success) {
+                            const blocked = elData.eligibility.some(e => !e.eligible_for_exam);
+                            eligibilityMap[sid] = blocked ? 'blocked' : 'eligible';
+                        }
+                    } catch (e) {}
+                }));
+                allStudents.forEach(s => { s.eligibility = eligibilityMap[s.id] || 'unknown'; });
                 filteredStudents = [...allStudents];
                 renderTable();
                 updateStats();
@@ -1217,7 +853,7 @@
 
             } catch (error) {
                 console.error('❌ Error:', error);
-                const errorHtml = `<tr><td colspan="7"><div class="empty"><span class="icon">❌</span>Error loading data: ${error.message}</div></td></tr>`;
+                const errorHtml = `<tr><td colspan="8"><div class="empty"><span class="icon">❌</span>Error loading data: ${error.message}</div></td></tr>`;
                 tbodies.forEach(el => { if (el) el.innerHTML = errorHtml; });
                 if (tbody3) tbody3.innerHTML = `<tr><td colspan="6"><div class="empty"><span class="icon">❌</span>${error.message}</div></td></tr>`;
             }
@@ -1331,7 +967,7 @@
             const end = Math.min(start + pageSize, total);
             const pageData = filteredStudents.slice(start, end);
 
-            const emptyRowFull = `<tr><td colspan="7"><div class="empty"><span class="icon">👨‍🎓</span>No students found</div></td></tr>`;
+            const emptyRowFull = `<tr><td colspan="8"><div class="empty"><span class="icon">👨‍🎓</span>No students found</div></td></tr>`;
             const emptyRowShort = `<tr><td colspan="6"><div class="empty"><span class="icon">👨‍🎓</span>No students found</div></td></tr>`;
 
             if (total === 0) {
@@ -1360,6 +996,12 @@
                     'late': 'badge-late'
                 }[status] || 'badge-absent';
 
+                const eligibilityBadge = s.eligibility === 'blocked'
+                    ? '<span style="background:rgba(239,68,68,0.12);color:#ef4444;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:600;">BLOCKED</span>'
+                    : s.eligibility === 'eligible'
+                        ? '<span style="background:rgba(16,185,129,0.12);color:#10b981;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:600;">ELIGIBLE</span>'
+                        : '<span style="background:rgba(156,163,175,0.12);color:#9ca3af;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:600;">N/A</span>';
+
                 html += `
                     <tr>
                         <td>${start + index + 1}</td>
@@ -1368,6 +1010,7 @@
                         <td><strong>${s.full_name}</strong></td>
                         <td>${s.class_name || 'N/A'} ${s.class_section || ''}</td>
                         <td><span class="badge ${statusBadge}">${status.toUpperCase()}</span></td>
+                        <td>${eligibilityBadge}</td>
                         <td>
                             <div class="action-btns">
                                 <button class="btn btn-present btn-xs" onclick="markAttendance(${s.id}, 'present', ${s.course_id || 'null'})" title="Mark Present">✅ P</button>
@@ -1675,6 +1318,182 @@
                 resultDiv.innerHTML = '<div style="color:#EF4444;font-size:13px;">❌ Failed to change password</div>';
             }
         });
+        }
+
+        // ============================================
+        // TEACHER QR CODE FUNCTIONS
+        // ============================================
+        let teacherQrRefreshInterval = null;
+
+        async function populateTeacherQrClasses() {
+            const selects = ['teacherQrClassSelect'];
+            selects.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = '<option value="">Select Class</option>';
+            });
+            if (allClasses.length === 0) {
+                try {
+                    const res = await fetch(`${API_URL}/teacher/classes?teacher_id=${user.id}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    if (data.success) allClasses = data.classes || [];
+                } catch (e) { }
+            }
+            allClasses.forEach(c => {
+                selects.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML += `<option value="${c.id}">${c.name} - ${c.section}</option>`;
+                });
+            });
+        }
+
+        function teacherGetLocation() {
+            const statusEl = document.getElementById('teacherLocationStatus');
+            if (!navigator.geolocation) {
+                statusEl.innerHTML = '<span style="color:var(--danger);">Geolocation not supported by your browser</span>';
+                return;
+            }
+            statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting location...';
+            statusEl.style.color = 'var(--text-muted)';
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    document.getElementById('teacherQrLat').value = pos.coords.latitude.toFixed(6);
+                    document.getElementById('teacherQrLng').value = pos.coords.longitude.toFixed(6);
+                    statusEl.innerHTML = '<i class="fas fa-check-circle" style="color:var(--accent);"></i> Location set (' + pos.coords.latitude.toFixed(4) + ', ' + pos.coords.longitude.toFixed(4) + ')';
+                },
+                (err) => {
+                    statusEl.innerHTML = '<span style="color:var(--danger);"><i class="fas fa-times-circle"></i> ' + err.message + '</span>';
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
+
+        async function teacherGenerateQR() {
+            const classId = document.getElementById('teacherQrClassSelect').value;
+            const validity = document.getElementById('teacherQrValidity').value || 20;
+            const lat = document.getElementById('teacherQrLat').value;
+            const lng = document.getElementById('teacherQrLng').value;
+            if (!classId) { showNotification('❌ Please select a class', 'error'); return; }
+
+            try {
+                const body = { class_id: parseInt(classId), validity_seconds: parseInt(validity) };
+                if (lat && lng) {
+                    body.latitude = parseFloat(lat);
+                    body.longitude = parseFloat(lng);
+                }
+                const res = await fetch(`${API_URL}/qr/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('teacherQrCodeDisplay').innerHTML = `<img src="${data.qr_image}" style="max-width:280px;border-radius:12px;border:2px solid var(--border-color);">`;
+                    document.getElementById('teacherQrCodeText').textContent = data.code;
+                    document.getElementById('teacherQrCodeInfo').innerHTML = `Class: ${data.class_id} | Expires in: <span id="tQrExpiry">${data.expires_in}</span>s`;
+                    teacherStartCountdown(data.expires_in);
+                    showNotification('✅ QR Code generated', 'success');
+                } else {
+                    showNotification('❌ ' + (data.message || 'Failed'), 'error');
+                }
+            } catch (error) {
+                showNotification('❌ Failed to generate QR code', 'error');
+            }
+        }
+
+        function teacherStartCountdown(seconds) {
+            if (teacherQrRefreshInterval) clearInterval(teacherQrRefreshInterval);
+            let remaining = seconds;
+            teacherQrRefreshInterval = setInterval(() => {
+                remaining--;
+                const el = document.getElementById('teacherQrCountdown');
+                if (el) el.textContent = `Expires in ${remaining}s`;
+                const el2 = document.getElementById('tQrExpiry');
+                if (el2) el2.textContent = remaining;
+                if (remaining <= 0) {
+                    clearInterval(teacherQrRefreshInterval);
+                    document.getElementById('teacherQrCodeText').textContent = 'EXPIRED';
+                    document.getElementById('teacherQrCodeInfo').innerHTML = '<span style="color:var(--danger);">Code expired. Click Refresh.</span>';
+                }
+            }, 1000);
+        }
+
+        // ============================================
+        // TEACHER EXPORT FUNCTIONS
+        // ============================================
+        async function teacherExport(type, format) {
+            let url = `${API_URL}/export/${type}/${format}`;
+            try {
+                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error('Export failed');
+                const blob = await res.blob();
+                const disposition = res.headers.get('Content-Disposition');
+                let filename = `export_${type}_${new Date().toISOString().split('T')[0]}${format === 'excel' ? '.xlsx' : '.pdf'}`;
+                if (disposition) { const m = disposition.match(/filename=([^;]+)/); if (m) filename = m[1]; }
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                link.click();
+                showNotification(`✅ ${type} exported as ${format.toUpperCase()}`, 'success');
+            } catch (error) {
+                showNotification('❌ Export failed', 'error');
+            }
+        }
+
+        // ============================================
+        // TEACHER NOTIFICATION FUNCTIONS
+        // ============================================
+        async function teacherViewLowAttendance() {
+            const threshold = document.getElementById('teacherThreshold').value || 75;
+            const container = document.getElementById('teacherLowAttendanceResults');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            try {
+                const res = await fetch(`${API_URL}/notifications/low-attendance-students?threshold=${threshold}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success && data.students.length > 0) {
+                    let html = '<table style="width:100%;font-size:13px;"><thead><tr><th>#</th><th>Name</th><th>Class</th><th>Rate</th></tr></thead><tbody>';
+                    data.students.forEach((s, i) => {
+                        html += `<tr><td>${i + 1}</td><td><strong>${s.full_name}</strong></td><td>${s.class_name} ${s.section}</td><td style="color:var(--danger);font-weight:bold;">${s.percentage || 0}%</td></tr>`;
+                    });
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<p style="color:var(--text-secondary);padding:16px;">No students below threshold.</p>';
+                }
+            } catch (error) {
+                container.innerHTML = '<p style="color:var(--danger);">Failed to load data.</p>';
+            }
+        }
+
+        async function teacherSendBulkWarnings() {
+            const threshold = document.getElementById('teacherThreshold').value || 75;
+            const container = document.getElementById('teacherLowAttendanceResults');
+            if (!confirm(`Send low attendance warnings to all students below ${threshold}%?`)) return;
+
+            container.innerHTML = '<div class="loading"><div class="spinner"></div> Sending warnings...</div>';
+
+            try {
+                const res = await fetch(`${API_URL}/notifications/bulk-low-attendance`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ threshold: parseInt(threshold) })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    container.innerHTML = `<div style="padding:16px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-weight:600;"><i class="fas fa-check-circle"></i> ${data.message || 'Warnings sent successfully!'}</div>`;
+                } else {
+                    container.innerHTML = `<div style="padding:16px;background:var(--danger-bg);border:1px solid var(--danger);border-radius:8px;color:var(--danger);font-weight:600;"><i class="fas fa-times-circle"></i> ${data.message || 'Failed to send warnings'}</div>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<div style="padding:16px;background:var(--danger-bg);border:1px solid var(--danger);border-radius:8px;color:var(--danger);font-weight:600;"><i class="fas fa-times-circle"></i> Failed to send warnings</div>`;
+            }
         }
 
         // ===== INIT =====

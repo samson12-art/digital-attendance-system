@@ -14,12 +14,13 @@ const UserModel = {
             .then(r => r.rows[0]);
     },
 
-    createUser(username, hashedPassword, email, full_name, role, class_id) {
+    createUser(username, hashedPassword, email, full_name, role, class_id, extra = {}) {
+        const { department, entry_year, level, semester, section } = extra;
         return pool.query(
-            `INSERT INTO users (username, password, email, full_name, role, is_active, class_id)
-             VALUES ($1, $2, $3, $4, $5, true, $6)
-             RETURNING id, username, email, full_name, role, class_id`,
-            [username, hashedPassword, email, full_name, role, class_id || null]
+            `INSERT INTO users (username, password, email, full_name, role, is_active, class_id, department, entry_year, level, semester, section)
+             VALUES ($1, $2, $3, $4, $5, true, $6, $7, $8, $9, $10, $11)
+             RETURNING id, username, email, full_name, role, class_id, department, entry_year, level, semester, section`,
+            [username, hashedPassword, email, full_name, role, class_id || null, department || null, entry_year || null, level || null, semester || null, section || null]
         ).then(r => r.rows[0]);
     },
 
@@ -27,7 +28,7 @@ const UserModel = {
         return pool.query(`
             SELECT
                 u.id, u.username, u.email, u.full_name, u.role, u.is_active,
-                u.class_id, u.entry_year, u.semester, u.department,
+                u.class_id, u.entry_year, u.semester, u.department, u.profile_photo,
                 c.name as class_name, c.section as class_section
             FROM users u
             LEFT JOIN classes c ON u.class_id = c.id
@@ -53,6 +54,7 @@ const UserModel = {
         const sectionQuery = `
             SELECT DISTINCT
                 u.id, u.username, u.email, u.full_name, u.role, u.is_active,
+                u.profile_photo,
                 tc.id as course_id, tc.id as class_id,
                 tc.name as class_name, tc.name as course_code,
                 tc.section as class_section,
@@ -71,6 +73,7 @@ const UserModel = {
         const enrollmentQuery = `
             SELECT DISTINCT
                 u.id, u.username, u.email, u.full_name, u.role, u.is_active,
+                u.profile_photo,
                 cl.id as course_id, cl.id as class_id,
                 cl.name as class_name, cl.name as course_code,
                 cl.section as class_section,
@@ -88,7 +91,7 @@ const UserModel = {
             WHERE u.role = 'student' AND u.is_active = true
         `;
 
-        const bothQuery = `(${enrollmentQuery}) UNION (${sectionQuery}) ORDER BY u.full_name`;
+        const bothQuery = `(${enrollmentQuery}) UNION (${sectionQuery}) ORDER BY full_name`;
 
         return pool.query(bothQuery, [teacherId])
             .then(r => r.rows)
@@ -132,10 +135,59 @@ const UserModel = {
         `, [studentId]).then(r => r.rows);
     },
 
+    updateProfilePhoto(userId, photoPath) {
+        return pool.query(
+            'UPDATE users SET profile_photo = $1 WHERE id = $2 RETURNING id, profile_photo',
+            [photoPath, userId]
+        ).then(r => r.rows[0]);
+    },
+
+    getExamEligibility(studentId) {
+        return pool.query(`
+            SELECT
+                c.id as class_id,
+                c.name as course_name,
+                c.section,
+                COUNT(a.id) as total_classes,
+                COUNT(a.id) FILTER (WHERE a.status = 'late') as late_count,
+                COUNT(a.id) FILTER (WHERE a.status = 'absent') as absent_count,
+                COUNT(a.id) FILTER (WHERE a.status = 'present') as present_count,
+                CASE WHEN COUNT(a.id) > 0
+                    THEN ROUND(CAST(COUNT(a.id) FILTER (WHERE a.status = 'late') AS DECIMAL) / COUNT(a.id) * 100, 2)
+                    ELSE 0 END as late_percent,
+                CASE WHEN COUNT(a.id) > 0
+                    THEN ROUND(CAST(COUNT(a.id) FILTER (WHERE a.status = 'absent') AS DECIMAL) / COUNT(a.id) * 100, 2)
+                    ELSE 0 END as absent_percent,
+                CASE WHEN COUNT(a.id) > 0
+                    THEN ROUND(CAST(COUNT(a.id) FILTER (WHERE a.status IN ('present','late')) AS DECIMAL) / COUNT(a.id) * 100, 2)
+                    ELSE 0 END as attendance_percent,
+                CASE
+                    WHEN COUNT(a.id) = 0 THEN true
+                    WHEN COUNT(a.id) FILTER (WHERE a.status = 'late')::DECIMAL / COUNT(a.id) * 100 >= 60 THEN false
+                    WHEN COUNT(a.id) FILTER (WHERE a.status = 'absent')::DECIMAL / COUNT(a.id) * 100 > 23 THEN false
+                    ELSE true
+                END as eligible_for_exam
+            FROM users student
+            LEFT JOIN classes sc ON student.class_id = sc.id
+            LEFT JOIN classes c ON c.section = sc.section
+            LEFT JOIN attendance a ON a.class_id = c.id AND a.student_id = student.id
+            WHERE student.id = $1 AND student.role = 'student' AND student.is_active = true
+            GROUP BY c.id, c.name, c.section
+            ORDER BY c.name, c.section
+        `, [studentId]).then(r => r.rows);
+    },
+
     getStudentById(studentId) {
         return pool.query(
-            `SELECT class_id FROM users WHERE id = $1 AND role = 'student' AND is_active = true`,
+            `SELECT id, username, email, full_name, role, class_id, profile_photo FROM users WHERE id = $1 AND role = 'student' AND is_active = true`,
             [studentId]
+        ).then(r => r.rows[0]);
+    },
+
+    getUserProfile(userId) {
+        return pool.query(
+            `SELECT id, username, email, full_name, role, profile_photo FROM users WHERE id = $1 AND is_active = true`,
+            [userId]
         ).then(r => r.rows[0]);
     },
 

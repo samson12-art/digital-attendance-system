@@ -37,7 +37,8 @@ const authController = {
                     username: user.username,
                     role: user.role,
                     full_name: user.full_name,
-                    email: user.email
+                    email: user.email,
+                    profile_photo: user.profile_photo || null
                 }
             });
         } catch (error) {
@@ -47,19 +48,17 @@ const authController = {
 
     async register(req, res) {
         try {
-            const { username, password, email, full_name, role, class_id } = req.body;
+            const requester = req.user;
+            if (!requester || requester.role !== 'admin') {
+                return res.status(403).json({ success: false, message: 'Only admins can register new users' });
+            }
+
+            const { username, password, email, full_name, role, class_id, department, entry_year, level, semester, section } = req.body;
             if (!username || !password || !email || !full_name || !role) {
                 return res.status(400).json({ success: false, message: 'All fields are required' });
             }
             if (!['admin', 'teacher', 'student'].includes(role)) {
                 return res.status(400).json({ success: false, message: 'Invalid role' });
-            }
-            if (role === 'admin') {
-                const { getUserFromToken } = require('../middleware/auth');
-                const requester = getUserFromToken(req);
-                if (!requester || requester.role !== 'admin') {
-                    return res.status(403).json({ success: false, message: 'Only admins can create admin accounts' });
-                }
             }
             if (!isValidEmail(email)) {
                 return res.status(400).json({ success: false, message: 'Invalid email address' });
@@ -79,9 +78,67 @@ const authController = {
             }
 
             const hashedPassword = await UserModel.hashPassword(password);
-            const user = await UserModel.createUser(username, hashedPassword, email, full_name, role, class_id);
+            const user = await UserModel.createUser(username, hashedPassword, email, full_name, role, class_id, { department, entry_year, level, semester, section });
 
             res.json({ success: true, message: 'Registration successful', user });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+
+    async forgotPassword(req, res) {
+        try {
+            const { username, email } = req.body;
+            if (!username || !email) {
+                return res.status(400).json({ success: false, message: 'Username and email are required' });
+            }
+
+            const user = await UserModel.findByUsername(username);
+            if (!user || user.email !== email) {
+                return res.status(401).json({ success: false, message: 'Username and email do not match our records' });
+            }
+
+            const resetToken = jwt.sign(
+                { id: user.id, username: user.username, purpose: 'password-reset' },
+                process.env.JWT_SECRET || 'development_secret_change_me',
+                { expiresIn: '15m' }
+            );
+
+            res.json({ success: true, message: 'Identity verified. You can now reset your password.', token: resetToken });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+
+    async resetPassword(req, res) {
+        try {
+            const { token, newPassword } = req.body;
+            if (!token || !newPassword) {
+                return res.status(400).json({ success: false, message: 'Token and new password are required' });
+            }
+
+            if (newPassword.length < 3) {
+                return res.status(400).json({ success: false, message: 'Password must be at least 3 characters' });
+            }
+
+            let decoded;
+            try {
+                decoded = jwt.verify(token, process.env.JWT_SECRET || 'development_secret_change_me');
+            } catch (err) {
+                return res.status(401).json({ success: false, message: 'Invalid or expired reset token' });
+            }
+
+            if (decoded.purpose !== 'password-reset') {
+                return res.status(401).json({ success: false, message: 'Invalid reset token' });
+            }
+
+            const hashedPassword = await UserModel.hashPassword(newPassword);
+            await pool.query(
+                'UPDATE users SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND is_active = true',
+                [hashedPassword, decoded.id]
+            );
+
+            res.json({ success: true, message: 'Password reset successfully. You can now log in with your new password.' });
         } catch (error) {
             res.status(500).json({ success: false, message: error.message });
         }

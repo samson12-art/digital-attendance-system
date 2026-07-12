@@ -1,0 +1,616 @@
+===================================================
+  DIGITAL ATTENDANCE SYSTEM - PRESENTATION SLIDES
+  Copy from here into PowerPoint
+===================================================
+
+===================================================
+SLIDE 1: TITLE SLIDE
+===================================================
+Title: Digital Attendance System
+Subtitle: A Full-Stack Web Application for Managing Student Attendance
+Author: [Your Name]
+
+===================================================
+SLIDE 2: PROJECT OVERVIEW
+===================================================
+What is this project?
+- A web-based attendance management system for schools/colleges
+- Three user roles: Admin, Teacher, Student
+- Teachers mark attendance digitally (Present, Absent, Late)
+- Students view their attendance records
+- Admin manages users and classes
+
+Technology Stack:
+- Frontend: HTML, CSS, Vanilla JavaScript
+- Backend: Node.js with Express (MVC pattern)
+- Database: PostgreSQL
+- Server runs on port 5001
+
+===================================================
+SLIDE 3: SYSTEM ARCHITECTURE (3-Tier)
+===================================================
+Diagram:
+  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+  │  FRONTEND    │────▶│  BACKEND     │────▶│  DATABASE    │
+  │  (Browser)   │     │  Node.js     │     │  PostgreSQL  │
+  │  HTML/CSS/JS │◀────│  Express API │◀────│              │
+  │  Port 5001   │     │  Port 5001   │     │  Port 5432   │
+  └──────────────┘     └──────────────┘     └──────────────┘
+
+How they connect:
+1. User opens a webpage (HTML) in browser
+2. Browser loads CSS for styling + JavaScript for interaction
+3. User clicks a button → JavaScript calls Backend API
+4. Backend processes request → queries Database
+5. Database returns data → Backend formats → sends to Browser
+6. Browser updates the page with the result
+
+===================================================
+SLIDE 4: FILE STRUCTURE
+===================================================
+DIGITAL ATTENDANCE SYSTEM/
+│
+├── backend/              ★ THE SERVER SIDE
+│   ├── server.js         Entry point - starts the server
+│   ├── seed.js           Creates demo users in database
+│   ├── .env              Configuration (DB, JWT secret)
+│   └── src/
+│       ├── app.js        Express setup (middleware, routes)
+│       ├── config/       Database connection
+│       ├── middleware/   JWT auth, role checking
+│       ├── models/       Database queries (M in MVC)
+│       ├── controllers/  Business logic (C in MVC)
+│       └── routes/       API endpoint definitions
+│
+├── frontend/             ★ THE CLIENT SIDE
+│   ├── login.html        Login page
+│   ├── register.html     Registration page
+│   ├── forgot-password.html  Password reset
+│   ├── teacherhome.html  Teacher dashboard
+│   ├── studenthome.html  Student dashboard
+│   ├── adminhome.html    Admin dashboard
+│   └── assets/css/       External CSS files
+│
+├── database/
+│   └── schema.sql        SQL table definitions
+
+===================================================
+SLIDE 5: CSS APPROACH (IMPORTANT FOR TEACHER)
+===================================================
+Question: Where is the CSS? Inline, External, or Both?
+
+Answer: We use BOTH methods.
+
+----------------------------------------------------------------
+METHOD 1: Inline CSS (inside <style> tags in HTML)
+----------------------------------------------------------------
+Used in: login.html, register.html, forgot-password.html,
+          studenthome.html, adminhome.html
+
+WHY we chose this:
+  ✅ Self-contained pages - open any HTML file and it works
+  ✅ Fewer HTTP requests - CSS loads with the page
+  ✅ No conflicts between pages
+  ✅ Fast development - see HTML and CSS in one file
+
+----------------------------------------------------------------
+METHOD 2: External CSS files
+----------------------------------------------------------------
+Used in: teacher-dashboard.css (1099 lines)
+         styles.css (1031 lines)
+         output.css (Tailwind generated)
+
+WHY for teacher dashboard:
+  ✅ Very complex page with 1000+ lines of CSS
+  ✅ Separating keeps the HTML clean and readable
+  ✅ Reusable across sections of the dashboard
+
+----------------------------------------------------------------
+METHOD 3: CSS Custom Properties (Variables)
+----------------------------------------------------------------
+Used for: Dark/Light theme switching
+
+Example:
+  :root {
+    --bg-primary: #0a0a1a;     /* Dark background */
+    --text-primary: #ffffff;     /* White text */
+    --primary: #4F46E5;         /* Purple accent */
+  }
+  body.light-mode {
+    --bg-primary: #f1f5f9;      /* Light background */
+    --text-primary: #0f172a;     /* Dark text */
+  }
+
+One JavaScript toggle changes ALL colors instantly.
+
+===================================================
+SLIDE 6: TAILWIND CSS
+===================================================
+What is Tailwind?
+- A utility-first CSS framework
+- Instead of writing custom CSS, you use pre-made classes
+- Example: class="flex items-center p-4 bg-blue-500"
+
+Do we use it?
+- It IS installed and configured (tailwind.config.js)
+- output.css exists with Tailwind utilities
+- BUT we mostly use our own custom CSS instead
+
+Why we chose custom CSS over Tailwind?
+1. We needed full control over the dark theme colors
+2. Tailwind would make HTML very long with class names
+3. Hand-written CSS shows understanding of CSS itself
+4. For a school project, custom CSS demonstrates skill
+
+===================================================
+SLIDE 7: FRONTEND - Vanilla JavaScript
+===================================================
+We use PURE JavaScript (No React, Vue, or Angular)
+
+Why no framework?
+- A school attendance system is simple enough for vanilla JS
+- No build tools needed (webpack, npm build, etc.)
+- You can open HTML files directly in a browser
+- Fewer files to manage
+- Easy to understand for all team members
+
+How the Login Flow works:
+  1. User fills username + password
+  2. Click Login button
+  3. JavaScript captures input values
+  4. Button shows "Logging in..." (disabled)
+  5. fetch() sends POST request to backend API
+  6. If success → store JWT token in localStorage
+  7. Redirect to dashboard based on role (teacher/student/admin)
+  8. If error → show error message, re-enable button
+
+How the Dashboard knows who is logged in:
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  if (!token || !user.id) {
+    window.location.href = 'login.html';  // Not logged in
+  }
+
+Why localStorage?
+- Data persists across page refreshes
+- Simple API (getItem, setItem, removeItem)
+- No cookies or server sessions needed
+
+===================================================
+SLIDE 8: BACKEND - Node.js with Express (MVC)
+===================================================
+What is Express?
+- A web framework for Node.js
+- Handles routing, middleware, requests, responses
+- The "standard" way to build Node.js web apps
+
+Model-View-Controller (MVC) Pattern:
+  ┌──────────────────────────────────────────┐
+  │                                          │
+  │  ROUTE → CONTROLLER → MODEL → DATABASE   │
+  │  (URL)   (logic)    (SQL)   (PostgreSQL) │
+  │                                          │
+  └──────────────────────────────────────────┘
+
+Example - Login request:
+  1. Route: POST /api/auth/login → authRoutes.js
+  2. Controller: authController.login → authController.js
+  3. Model: UserModel.findByUsername → userModel.js
+  4. Database: SELECT * FROM users WHERE username = $1
+  5. Response: { success: true, token: "jwt...", user: {...} }
+
+Why MVC?
+- Separates concerns (each file has one job)
+- Easy to modify without breaking other parts
+- Professional and organized
+- Scales well for larger projects
+
+===================================================
+SLIDE 9: BACKEND - app.js Middleware Stack
+===================================================
+The "middleware stack" - Express processes in order:
+
+  Step 1: helmet()
+  Security headers: X-Content-Type-Options, X-Frame-Options, etc.
+
+  Step 2: cors({ origin: '*' })
+  Allows cross-origin requests (frontend on any port)
+
+  Step 3: Rate Limiter on /api
+  Max 300 requests per 15 minutes per IP
+  Prevents brute-force attacks
+
+  Step 4: express.json()
+  Parses incoming JSON request bodies
+
+  Step 5: express.static()
+  Serves frontend/ folder as static files (HTML, CSS, JS)
+
+  Step 6: Request Logger
+  Writes every request to logs/requests.log
+
+  Step 7: Routes
+  /api/auth, /api/users, /api/classes, /api/attendance
+  /api/teacher, /api/admin
+
+  Step 8: 404 Handler
+  If no route matches → return "Route not found"
+
+  Step 9: Error Handler
+  If any error is thrown → return 500 with error message
+
+===================================================
+SLIDE 10: SECURITY METHOD 1 - Password Hashing (bcryptjs)
+===================================================
+Passwords are NEVER stored in plain text.
+
+Step 1 - When user registers:
+  const hashedPassword = await bcrypt.hash(password, 10);
+  // "123" → "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
+
+Step 2 - Store the hash in database:
+  INSERT INTO users (password) VALUES ($1)  ← the hash
+
+Step 3 - When user logs in:
+  const match = await bcrypt.compare(inputPassword, storedHash);
+  // Returns true or false
+
+Why bcrypt?
+- Each hash includes a random "salt" (prevents rainbow table attacks)
+- Even identical passwords produce different hashes
+- The "10" is the cost factor - makes it slow (hard to brute-force)
+- Industry standard for password storage
+
+===================================================
+SLIDE 11: SECURITY METHOD 2 - JWT Tokens (jsonwebtoken)
+===================================================
+JWT = JSON Web Token - a digital identity card
+
+What a JWT looks like:
+  eyJhbGciOiJIUzI1NiJ9.eyJpZCI6Mn0.k5P1a9Vz...
+
+Three parts (separated by dots):
+  1. Header: algorithm type
+  2. Payload: { id: 2, username: "yordanos", role: "teacher" }
+  3. Signature: encrypted verification
+
+How it works:
+  Login → Server creates JWT → Client stores in localStorage
+  Every API call → Client sends JWT in Authorization header
+  Server verifies JWT → allows or denies the request
+
+Why JWT?
+- Stateless (no need to store sessions on server)
+- Contains user info (id, username, role) - no DB lookup needed
+- Signed with secret key (cannot be tampered with)
+- Has expiration (7 days, then must login again)
+
+===================================================
+SLIDE 12: SECURITY METHOD 3 - Helmet
+===================================================
+Helmet adds HTTP security headers to every response:
+
+Header                    Purpose
+──────────────────────────────────────────────────────────────
+X-Content-Type-Options    Prevents MIME-type sniffing
+X-Frame-Options           Prevents clickjacking (no iframes)
+X-XSS-Protection          Cross-site scripting filter
+Strict-Transport-Security Forces HTTPS connections
+Referrer-Policy           Controls referrer information
+
+What we disabled:
+  contentSecurityPolicy: false
+
+Why? Because we use:
+  - Inline CSS (<style> tags)
+  - External CDN scripts (Font Awesome)
+  CSP would block these, so we disabled it for this project.
+
+===================================================
+SLIDE 13: SECURITY METHOD 4 - CORS
+===================================================
+CORS = Cross-Origin Resource Sharing
+
+The problem:
+  Frontend is on:     http://localhost:5001
+  Backend is on:      http://localhost:5001  (same - no issue)
+  
+  BUT if using Live Server:
+  Frontend is on:     http://127.0.0.1:5500
+  Backend is on:      http://localhost:5001  (DIFFERENT origin!)
+
+The solution:
+  app.use(cors({ origin: '*' }));
+  This says "Allow requests from any origin"
+
+Why '*' (allow all)?
+- Fine for a school project behind a firewall
+- No public deployment (not exposed to internet)
+- Simplifies development (works with Live Server, file://, etc.)
+
+===================================================
+SLIDE 14: SECURITY METHOD 5 - Rate Limiting
+===================================================
+Rate limiting prevents brute-force attacks.
+
+Configuration:
+  app.use('/api', rateLimit({
+    windowMs: 15 * 60 * 1000,   // 15 minutes
+    max: 300,                     // 300 requests max
+    message: {
+      success: false,
+      message: 'Too many requests, please try again later.'
+    }
+  }));
+
+What this means:
+  - Any IP can make max 300 API requests per 15 minutes
+  - After 300, they get blocked with an error message
+  - Resets after 15 minutes
+
+Why?
+- Prevents attackers from trying thousands of passwords
+- Stops accidental infinite loops in frontend code
+- Protects server resources from overload
+
+===================================================
+SLIDE 15: SECURITY METHOD 6 - SQL Injection Prevention
+===================================================
+SQL Injection is a common attack where users enter SQL code
+into input fields to manipulate the database.
+
+VULNERABLE code (NEVER do this):
+  const query = "SELECT * FROM users WHERE username = '" + username + "'";
+  // If username = "admin'--", this becomes:
+  // SELECT * FROM users WHERE username = 'admin'--'
+  // The -- comments out the rest = attacker bypasses authentication!
+
+OUR code (parameterized queries):
+  pool.query('SELECT * FROM users WHERE username = $1', [username]);
+  // $1 is a placeholder - the pg library safely escapes the value
+  // User input is NEVER concatenated into SQL strings
+
+The $1, $2, $3 placeholders ensure:
+  ✅ User input is treated as data, not SQL code
+  ✅ Special characters are automatically escaped
+  ✅ No way to inject malicious SQL
+
+===================================================
+SLIDE 16: SECURITY METHOD 7 - Role-Based Access Control
+===================================================
+Different users have different permissions.
+
+Middleware that checks roles:
+  // Check if user is authenticated
+  function requireAuth(req, res, next) {
+    const token = req.headers.authorization?.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  }
+
+  // Check if user has specific role
+  function requireRole(...roles) {
+    return (req, res, next) => {
+      if (!roles.includes(req.user.role)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Forbidden: insufficient permissions'
+        });
+      }
+      next();
+    };
+  }
+
+Usage in routes:
+  // Only logged-in users can change password
+  router.put('/change-password', requireAuth, controller.changePassword);
+  
+  // Only admins can create admin accounts
+  if (requester.role !== 'admin') {
+    return res.status(403).json({ message: 'Only admins can do this' });
+  }
+
+Three user roles:
+  admin   → Can manage users, classes, view all data
+  teacher → Can mark attendance, view their students
+  student → Can view their own attendance records only
+
+===================================================
+SLIDE 17: DATABASE - PostgreSQL Schema
+===================================================
+Three tables working together:
+
+┌───────────────┐      ┌───────────────┐
+│    users      │      │   classes     │
+├───────────────┤      ├───────────────┤
+│ id (PK)       │      │ id (PK)       │
+│ username      │      │ name          │
+│ password      │      │ section       │
+│ email         │      │ teacher_id ───│──▶ users.id
+│ role          │      │ year          │
+│ full_name     │      │ semester      │
+│ is_active     │      └───────────────┘
+│ class_id ─────│────▶       │
+│ entry_year    │            │
+│ semester      │            │
+│ department    │            │
+└───────────────┘            │
+       │                    │
+       │     ┌──────────────┴───┐
+       │     │  attendance      │
+       │     ├──────────────────┤
+       └─────│ student_id       │
+             │ class_id         │
+             │ date             │
+             │ status           │
+             │ check_in_time    │
+             └──────────────────┘
+
+Why one users table for all roles?
+- A person is just a person with a role
+- Simpler authentication (one query)
+- Easier to manage (add/edit/delete users)
+
+===================================================
+SLIDE 18: DATA FLOW - Marking Attendance
+===================================================
+Complete flow when a teacher marks "Present":
+
+  1. Browser (teacherhome.html)
+     Teacher clicks "Present" button
+     JavaScript calls: markAttendance(studentId, 'present')
+
+  2. API Call
+     POST /api/attendance/mark
+     Authorization: Bearer <JWT token>
+     Body: { student_id: 11, class_id: 3, status: "present" }
+
+  3. Backend Processing
+     a. requireAuth middleware verifies JWT token
+     b. Route matches → attendanceController.markAttendance
+     c. Controller validates data
+     d. Model runs: INSERT INTO attendance (...)
+
+  4. Database
+     Stores: student_id=11, class_id=3, date=today, status='present'
+
+  5. Response
+     { success: true, message: "Attendance marked" }
+
+  6. Browser Update
+     JavaScript receives success → updates the table row
+     Shows green "Present" badge
+     Updates the statistics counters
+
+===================================================
+SLIDE 19: DATA FLOW - Login Process (Detailed)
+===================================================
+  User enters: yordanos / 123
+
+  1. Frontend:
+     const response = await fetch(`${API_URL}/auth/login`, {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({ username: 'yordanos', password: '123' })
+     });
+
+  2. Backend:
+     a. express.json() parses the body
+     b. Auth route matches → authController.login()
+     c. Calls UserModel.findByUsername('yordanos')
+     d. Database: SELECT * FROM users WHERE username = 'yordanos'
+     e. User found → bcrypt.compare('123', storedHash) → true
+     f. JWT.sign({ id:2, role:'teacher' }, secret, { expiresIn:'7d' })
+     g. Returns: { success:true, token:"eyJ...", user:{...} }
+
+  3. Frontend:
+     a. Stores token in localStorage
+     b. Stores user object in localStorage
+     c. Shows "Welcome, Ms. Yordanos!" message
+     d. After 700ms → redirect to teacherhome.html
+
+  4. Teacher Dashboard:
+     a. Reads user from localStorage
+     b. Checks: is token present? is user.id present?
+     c. If OK → loads dashboard data
+     d. If missing → redirects back to login.html
+
+===================================================
+SLIDE 20: FORGOT PASSWORD FLOW
+===================================================
+  Step 1: User clicks "Forgot Password?" link
+          → Opens forgot-password.html
+
+  Step 2: User enters username + email
+          POST /api/auth/forgot-password
+          Body: { username: "dawit", email: "dawit@student.com" }
+
+  Step 3: Server verifies:
+          - User exists with that username?
+          - Email matches?
+          If YES → creates temporary JWT token (expires in 15 min)
+
+  Step 4: Browser shows new password form (Step 2)
+
+  Step 5: User enters new password + confirm
+          POST /api/auth/reset-password
+          Body: { token: "temp-jwt...", newPassword: "newpass456" }
+
+  Step 6: Server:
+          - Verifies the temporary token (not expired?)
+          - Token purpose is "password-reset"?
+          - If YES → hashes new password → UPDATE users SET password
+          - Returns success
+
+  Step 7: Redirects to login page
+          User logs in with new password
+
+===================================================
+SLIDE 21: KEY DESIGN DECISIONS SUMMARY
+===================================================
+
+DECISION                    WHY
+────────────────────────────────────────────────────────────
+Vanilla JS (no framework)   Simple project, no build step
+Inline <style> CSS          Self-contained pages
+External CSS for dashboard  Complex page, keeps HTML clean
+Custom CSS (not Tailwind)   Full theme control, shows skill
+CSS variables for themes    One toggle changes everything
+JWT tokens                  Stateless, no server sessions
+bcrypt password hashing     Industry standard, salted hashes
+PostgreSQL                  Advanced queries, JSON support
+Parameterized queries       Prevents SQL injection
+MVC pattern                 Organized, professional structure
+Express middleware stack    Modular, easy to add/remove features
+Rate limiting              Prevents brute-force attacks
+Role-based access          Each user sees only their data
+
+===================================================
+SLIDE 22: POTENTIAL IMPROVEMENTS
+===================================================
+If we had more time, we would add:
+
+  1. Email notifications for password reset
+     (Instead of just matching username + email)
+
+  2. Forgot password via security questions
+     (In case student forgets email too)
+
+  3. QR Code scanning for attendance
+     (Students scan code to mark themselves present)
+
+  4. Export reports as PDF/Excel
+     (Teachers can download attendance reports)
+
+  5. Real-time updates with WebSockets
+     (Attendance updates instantly on all connected devices)
+
+  6. Automated backup of database
+     (Daily backup to prevent data loss)
+
+===================================================
+SLIDE 23: CONCLUSION
+===================================================
+The Digital Attendance System is a:
+
+  ✅ Full-stack web application (Frontend + Backend + Database)
+  ✅ Secure (JWT, bcrypt, Helmet, CORS, Rate limiting)
+  ✅ Organized (MVC pattern, clean file structure)
+  ✅ User-friendly (Dark theme, responsive, role-based dashboards)
+  ✅ Practical (Digitizes attendance tracking for schools)
+
+It replaces paper-based attendance with:
+  - Real-time digital records
+  - Instant statistics and reports
+  - Secure authentication
+  - Role-specific interfaces
+
+Thank you!
+
+Questions?
+
+===================================================
+END OF PRESENTATION
+===================================================

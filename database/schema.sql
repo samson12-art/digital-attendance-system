@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS users (
     entry_year VARCHAR(20),
     semester VARCHAR(20),
     department VARCHAR(100),
+    profile_photo VARCHAR(500) DEFAULT NULL,
     last_login TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

@@ -5,110 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-store">
     <title>Login - Digital Attendance</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #0a0a1a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background: #1a1a2e;
-            padding: 40px;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-        }
-        h1 { color: white; text-align: center; }
-        h1 span { color: #4F46E5; }
-        .subtitle { color: #9CA3AF; text-align: center; margin-bottom: 25px; }
-        .form-group { margin-bottom: 18px; }
-        label { color: #9CA3AF; display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; }
-        input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #374151;
-            border-radius: 8px;
-            background: #0f0f23;
-            color: white;
-            font-size: 15px;
-            box-sizing: border-box;
-        }
-        input:focus { outline: none; border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,0.2); }
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: #4F46E5;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
-        }
-        .btn:hover { background: #6366F1; transform: translateY(-2px); }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        .message {
-            padding: 10px 14px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            display: none;
-        }
-        .message.error { color: #EF4444; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); }
-        .message.success { color: #22C55E; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); }
-        .message.show { display: block; }
-        .demo-box {
-            background: rgba(255,255,255,0.05);
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border: 1px solid #374151;
-        }
-        .demo-box p { color: #9CA3AF; font-size: 12px; margin: 0 0 5px 0; }
-        .demo-box .row { display: flex; justify-content: space-between; color: #9CA3AF; font-size: 13px; padding: 2px 0; }
-        .demo-box .row strong { color: white; }
-        .demo-box .row .role { color: #4F46E5; }
-        .register-link { text-align: center; color: #9CA3AF; margin-top: 20px; }
-        .register-link a { color: #4F46E5; text-decoration: none; }
-        .register-link a:hover { text-decoration: underline; }
-    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Digital <span>Attendance</span></h1>
-        <p class="subtitle">Sign in to your account</p>
-
-        <div id="message" class="message"></div>
-
-        <div id="loginForm">
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" id="username" placeholder="Enter your username" value="yordanos">
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <div class="logo-icon"><i class="fas fa-clipboard-check"></i></div>
             </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="password" placeholder="Enter your password" value="123">
+            <h1>Digital Attendance</h1>
+            <p class="auth-subtitle">Sign in with the account created by your admin.</p>
+
+            <div id="message" class="msg-box"></div>
+
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" value="yordanos">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <span class="field-heading">
+                            Password
+                            <button type="button" class="inline-text-button" onclick="togglePassword()" id="togglePasswordBtn">Show</button>
+                        </span>
+                    </label>
+                    <div class="password-field">
+                        <input type="password" id="password" placeholder="Enter your password" value="123">
+                        <button type="button" class="icon-button" onclick="togglePassword()" aria-label="Toggle password">
+                            <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="button" class="btn-auth" id="loginBtn">
+                    <i class="fas fa-lock"></i>
+                    <span id="loginBtnText">Sign In</span>
+                    <span id="loginBtnSpinner" style="display:none;"><i class="fas fa-spinner fa-spin"></i> Signing in...</span>
+                </button>
+            </form>
+
+            <div class="auth-info-box">
+                <div class="info-label">Demo Credentials</div>
+                <div class="info-row"><span><span class="role-tag">Admin</span> admin</span><span>Pass: 123</span></div>
+                <div class="info-row"><span><span class="role-tag">Teacher</span> yordanos</span><span>Pass: 123</span></div>
+                <div class="info-row"><span><span class="role-tag">Student</span> abdi_misgana</span><span>Pass: 123</span></div>
+                <div class="info-note">All seeded students use password 123</div>
             </div>
-            <button type="button" class="btn" id="loginBtn">Login</button>
-        </div>
 
-        <div class="demo-box">
-            <p>Demo Credentials</p>
-            <div class="row"><span><span class="role">Admin</span> <strong>admin</strong></span><span>Pass: <strong>123</strong></span></div>
-            <div class="row"><span><span class="role">Teacher</span> <strong>yordanos</strong></span><span>Pass: <strong>123</strong></span></div>
-            <div class="row"><span><span class="role">Student</span> <strong>abdi_misgana</strong></span><span>Pass: <strong>123</strong></span></div>
-            <div style="color:#64748b;font-size:11px;margin-top:4px;border-top:1px solid #374151;padding-top:4px;">All seeded students use password <strong>123</strong></div>
-        </div>
-
-        <div class="register-link">
-            Don't have an account? <a href="register.html">Register here</a>
+            <div class="auth-link">
+                New user? Contact admin for registration
+            </div>
         </div>
     </div>
 
@@ -121,25 +68,43 @@
             student: 'studenthome.html'
         };
 
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const icon = document.getElementById('togglePasswordIcon');
+            const toggleBtn = document.getElementById('togglePasswordBtn');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+                toggleBtn.textContent = 'Hide';
+            } else {
+                passwordInput.type = 'password';
+                icon.className = 'fas fa-eye';
+                toggleBtn.textContent = 'Show';
+            }
+        }
+
         async function handleLogin(event) {
             if (event) event.preventDefault();
 
             const message = document.getElementById('message');
             const loginBtn = document.getElementById('loginBtn');
+            const loginBtnText = document.getElementById('loginBtnText');
+            const loginBtnSpinner = document.getElementById('loginBtnSpinner');
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
 
-            message.className = 'message';
+            message.className = 'msg-box';
             message.textContent = '';
 
             if (!username || !password) {
                 message.textContent = 'Please enter both username and password';
-                message.className = 'message error show';
+                message.className = 'msg-box error show';
                 return;
             }
 
             loginBtn.disabled = true;
-            loginBtn.textContent = 'Logging in...';
+            loginBtnText.style.display = 'none';
+            loginBtnSpinner.style.display = 'inline';
             localStorage.removeItem('token');
             localStorage.removeItem('user');
 
@@ -151,16 +116,13 @@
                 });
 
                 const text = await response.text();
-                console.log('Response status:', response.status, 'Body:', text.substring(0, 500));
                 let data;
                 try {
                     data = JSON.parse(text);
                 } catch (jsonError) {
-                    console.error('Full response text:', text.substring(0, 1000));
                     throw new Error(
                         `Server returned: ${response.status} ${response.statusText}\n` +
-                        `URL: ${API_URL}/auth/login\n` +
-                        `Body preview: ${text.substring(0, 200)}`
+                        `URL: ${API_URL}/auth/login`
                     );
                 }
 
@@ -171,7 +133,7 @@
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
                 message.textContent = 'Welcome ' + data.user.full_name + '! Redirecting...';
-                message.className = 'message success show';
+                message.className = 'msg-box success show';
 
                 setTimeout(() => {
                     window.location.href = pagesByRole[data.user.role] || 'login.html';
@@ -180,9 +142,10 @@
                 message.textContent = error.message.includes('Failed to fetch')
                     ? 'Failed to connect to backend. Make sure the server is running on port 5001.'
                     : error.message;
-                message.className = 'message error show';
+                message.className = 'msg-box error show';
                 loginBtn.disabled = false;
-                loginBtn.textContent = 'Login';
+                loginBtnText.style.display = 'inline';
+                loginBtnSpinner.style.display = 'none';
                 console.error('Login error:', error);
             }
         }

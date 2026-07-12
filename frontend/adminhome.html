@@ -4,557 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --bg-primary: #0a0a1a;
-            --bg-secondary: #1a1a2e;
-            --bg-card: #16213e;
-            --bg-hover: #1a2744;
-            --bg-sidebar: rgba(15,15,26,0.98);
-            --text-primary: #ffffff;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --border-color: rgba(255,255,255,0.06);
-            --shadow: 0 4px 24px rgba(0,0,0,0.3);
-            --shadow-lg: 0 8px 40px rgba(0,0,0,0.4);
-            --primary: #4F46E5;
-            --success: #22C55E;
-            --danger: #EF4444;
-            --warning: #F59E0B;
-            --sidebar-width: 250px;
-            --radius: 12px;
-            --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        body.light-mode {
-            --bg-primary: #f1f5f9;
-            --bg-secondary: #ffffff;
-            --bg-card: #ffffff;
-            --bg-hover: #f8fafc;
-            --bg-sidebar: rgba(255,255,255,0.98);
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #94a3b8;
-            --border-color: rgba(0,0,0,0.06);
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            transition: var(--transition);
-        }
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--bg-sidebar);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            z-index: 100;
-            transition: var(--transition);
-            backdrop-filter: blur(20px);
-            overflow-y: auto;
-        }
-        .sidebar::-webkit-scrollbar { width: 4px; }
-        .sidebar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
-        .sidebar-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 20px 20px 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .sidebar-logo .logo-icon { font-size: 28px; }
-        .sidebar-logo .logo-text { font-weight: 800; font-size: 18px; }
-        .sidebar-logo .logo-text span { color: var(--primary); }
-        .sidebar-logo .logo-badge {
-            font-size: 9px;
-            background: var(--primary);
-            color: #fff;
-            padding: 2px 10px;
-            border-radius: 20px;
-            margin-left: auto;
-            font-weight: 600;
-        }
-        .sidebar-nav { flex: 1; padding: 16px 12px; }
-        .nav-section { margin-bottom: 20px; }
-        .nav-label {
-            display: block;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            color: var(--text-muted);
-            padding: 0 12px 8px;
-            font-weight: 600;
-        }
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            color: var(--text-secondary);
-            transition: var(--transition);
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            width: 100%;
-            text-align: left;
-            margin-bottom: 2px;
-        }
-        .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
-        .nav-item.active { background: rgba(79,70,229,0.12); color: var(--primary); }
-        .nav-item i { width: 22px; text-align: center; font-size: 16px; }
-        .nav-item .nav-badge {
-            margin-left: auto;
-            background: var(--danger);
-            color: #fff;
-            font-size: 9px;
-            padding: 1px 8px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-        .sidebar-footer {
-            padding: 16px 16px 20px;
-            border-top: 1px solid var(--border-color);
-        }
-        .sidebar-user {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .sidebar-user .avatar {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), #7C3AED);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 15px;
-            color: #fff;
-        }
-        .sidebar-user .user-info { flex: 1; }
-        .sidebar-user .user-info .name { font-size: 14px; font-weight: 600; }
-        .sidebar-user .user-info .role { font-size: 11px; color: var(--text-muted); }
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 28px;
-            height: 64px;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            backdrop-filter: blur(12px);
-            transition: var(--transition);
-        }
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .topbar-left .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--text-primary);
-            font-size: 20px;
-            cursor: pointer;
-        }
-        .topbar-left .page-title { font-size: 20px; font-weight: 700; }
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .topbar-right .search-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 50px;
-            padding: 6px 16px;
-            transition: var(--transition);
-        }
-        .topbar-right .search-box:focus-within {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
-        }
-        .topbar-right .search-box input {
-            background: none;
-            border: none;
-            outline: none;
-            color: var(--text-primary);
-            font-size: 13px;
-            width: 160px;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        .topbar-right .search-box input::placeholder { color: var(--text-muted); }
-        .topbar-right .search-box i { color: var(--text-muted); }
-        .topbar-right .date-time {
-            color: var(--text-muted);
-            font-size: 13px;
-            background: var(--bg-card);
-            padding: 6px 16px;
-            border-radius: 50px;
-            border: 1px solid var(--border-color);
-        }
-        .theme-toggle {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            color: var(--text-secondary);
-            font-size: 16px;
-        }
-        .theme-toggle:hover {
-            background: var(--bg-hover);
-            transform: rotate(15deg);
-        }
-        .dashboard-content {
-            padding: 24px 28px;
-            flex: 1;
-        }
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .page-header h2 { font-size: 24px; font-weight: 700; }
-        .page-header .subtitle { color: var(--text-secondary); font-size: 14px; }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .stat-card {
-            background: var(--bg-card);
-            padding: 18px 20px;
-            border-radius: var(--radius);
-            border: 1px solid var(--border-color);
-            transition: var(--transition);
-        }
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
-        }
-        .stat-card .number { font-size: 28px; font-weight: 700; }
-        .stat-card .label { color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
-        .stat-card .number.green { color: var(--success); }
-        .stat-card .number.red { color: var(--danger); }
-        .stat-card .number.blue { color: var(--primary); }
-        .stat-card .number.yellow { color: var(--warning); }
-        .stat-card .number.purple { color: #8B5CF6; }
-        .btn {
-            padding: 8px 18px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 13px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #6366F1; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(79,70,229,0.3); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-success:hover { background: #16A34A; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: #DC2626; }
-        .btn-warning { background: var(--warning); color: white; }
-        .btn-warning:hover { background: #D97706; }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-        }
-        .btn-outline:hover { background: var(--bg-hover); color: var(--text-primary); }
-        .btn-sm { padding: 4px 12px; font-size: 11px; }
-        .btn-xs { padding: 2px 8px; font-size: 10px; border-radius: 4px; }
-        .table-container {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-            transition: var(--transition);
-            display: none;
-        }
-        .table-container.active { display: block; }
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .table-header h3 { font-size: 16px; font-weight: 600; }
-        .table-header .total { color: var(--text-secondary); font-size: 14px; }
-        .table-wrapper { overflow-x: auto; padding: 0 4px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        table thead { background: var(--bg-hover); }
-        table th {
-            text-align: left;
-            padding: 12px 16px;
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            vertical-align: middle;
-        }
-        table tr:hover td { background: var(--bg-hover); }
-        .badge {
-            padding: 3px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        .badge-active { background: rgba(34,197,94,0.15); color: var(--success); }
-        .badge-inactive { background: rgba(239,68,68,0.15); color: var(--danger); }
-        .class-badge {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 600;
-            background: rgba(79,70,229,0.12);
-            color: var(--primary);
-        }
-        .pagination {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 20px;
-            border-top: 1px solid var(--border-color);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .pagination .info { color: var(--text-secondary); font-size: 13px; }
-        .pagination .pages { display: flex; gap: 4px; flex-wrap: wrap; }
-        .pagination .pages button {
-            padding: 6px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            background: transparent;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 13px;
-        }
-        .pagination .pages button:hover,
-        .pagination .pages button.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        .pagination .pages button:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-        .empty { text-align: center; padding: 40px; color: var(--text-secondary); }
-        .empty .icon { font-size: 48px; display: block; margin-bottom: 12px; }
-        .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
-        .spinner {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 3px solid var(--border-color);
-            border-radius: 50%;
-            border-top-color: var(--primary);
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal-overlay .modal {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            padding: 32px;
-            max-width: 580px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s ease;
-            box-shadow: var(--shadow-lg);
-        }
-        .modal-overlay .modal .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-        .modal-overlay .modal .modal-header h2 { font-size: 20px; font-weight: 700; }
-        .modal-overlay .modal .modal-header .close-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 24px;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        .modal-overlay .modal .modal-header .close-btn:hover {
-            color: var(--text-primary);
-            transform: rotate(90deg);
-        }
-        .modal-overlay .modal .form-group { margin-bottom: 16px; }
-        .modal-overlay .modal .form-group label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-        .modal-overlay .modal .form-group label .required { color: var(--danger); margin-left: 2px; }
-        .modal-overlay .modal .form-group input,
-        .modal-overlay .modal .form-group select,
-        .modal-overlay .modal .form-group textarea {
-            width: 100%;
-            padding: 10px 14px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            font-size: 14px;
-            font-family: 'Segoe UI', sans-serif;
-            outline: none;
-            transition: var(--transition);
-        }
-        .modal-overlay .modal .form-group input:focus,
-        .modal-overlay .modal .form-group select:focus,
-        .modal-overlay .modal .form-group textarea:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
-        }
-        .modal-overlay .modal .form-group select option {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-        }
-        .modal-overlay .modal .form-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-        }
-        .modal-overlay .modal .form-actions .btn { flex: 1; justify-content: center; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .page-container {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border-color);
-            padding: 24px;
-            margin-top: 16px;
-            display: none;
-        }
-        .page-container.active { display: block; }
-        .page-container h3 { margin-bottom: 16px; color: var(--primary); }
-        .page-container .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-        }
-        .page-container .grid-2 .stat-card { cursor: pointer; }
-        .page-container .grid-2 .stat-card:hover { border-color: var(--primary); }
-        .page-container pre {
-            color: var(--text-secondary);
-            font-family: monospace;
-            white-space: pre-wrap;
-            background: var(--bg-primary);
-            padding: 16px;
-            border-radius: var(--radius-sm);
-            margin-top: 16px;
-            display: none;
-        }
-        .page-container pre.show { display: block; }
-        .settings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 16px;
-        }
-        .settings-grid .stat-card { cursor: pointer; }
-        .settings-grid .stat-card:hover { border-color: var(--primary); }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); width: 280px; }
-            .sidebar.open { transform: translateX(0); }
-            .topbar-left .menu-toggle { display: block; }
-            .main-content { margin-left: 0; }
-            .topbar { padding: 0 16px; flex-wrap: wrap; height: auto; padding: 10px 16px; }
-            .topbar-right { flex-wrap: wrap; gap: 8px; }
-            .topbar-right .search-box input { width: 100px; }
-            .topbar-right .date-time { display: none; }
-            .dashboard-content { padding: 16px; }
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-            .form-row { grid-template-columns: 1fr; }
-        }
-        @media (max-width: 480px) {
-            .stats-grid { grid-template-columns: 1fr; }
-            .table-header { flex-direction: column; align-items: flex-start; }
-            .pagination { flex-direction: column; align-items: center; }
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
 
     <!-- ===== SIDEBAR ===== -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-            <span class="logo-icon">📚</span>
             <div class="logo-text">Digital <span>Attendance</span></div>
             <span class="logo-badge">Admin</span>
         </div>
@@ -579,6 +39,21 @@
                 <button class="nav-item" data-page="courses" onclick="switchPage('courses')">
                     <i class="fas fa-book"></i> Courses
                     <span class="nav-badge" id="courseBadge">0</span>
+                </button>
+            </div>
+            <div class="nav-section">
+                <span class="nav-label">Tools</span>
+                <button class="nav-item" data-page="exports" onclick="switchPage('exports')">
+                    <i class="fas fa-file-export"></i> Export
+                </button>
+                <button class="nav-item" data-page="notifications" onclick="switchPage('notifications')">
+                    <i class="fas fa-envelope"></i> Notifications
+                </button>
+                <button class="nav-item" data-page="qrcode" onclick="switchPage('qrcode')">
+                    <i class="fas fa-qrcode"></i> QR Code
+                </button>
+                <button class="nav-item" data-page="bulk" onclick="switchPage('bulk')">
+                    <i class="fas fa-layer-group"></i> Bulk Ops
                 </button>
             </div>
             <div class="nav-section">
@@ -692,17 +167,19 @@
                             <tr>
                                 <th>#</th>
                                 <th>ID</th>
+                                <th>Photo</th>
                                 <th>Username</th>
                                 <th>Full Name</th>
                                 <th>Email</th>
                                 <th>Class</th>
                                 <th>Status</th>
+                                <th>Eligibility</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="studentsTableBody">
                             <tr>
-                                <td colspan="8">
+                                <td colspan="10">
                                     <div class="loading"><div class="spinner"></div> Loading students...</div>
                                 </td>
                             </tr>
@@ -881,6 +358,170 @@
                 </div>
             </div>
 
+            <!-- ===== EXPORT PAGE ===== -->
+            <div class="page-container" id="exportsPage">
+                <h3>Export Data</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">Download attendance sheets and reports in Excel or PDF format</p>
+                <div class="grid-2">
+                    <div class="stat-card" style="cursor:default;">
+                        <div style="font-size:24px;">📊</div>
+                        <div class="label" style="font-size:14px;font-weight:600;margin-top:8px;">Attendance Export</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Download attendance records</div>
+                        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn btn-success btn-sm" onclick="exportData('attendance','excel')"><i class="fas fa-file-excel"></i> Excel</button>
+                            <button class="btn btn-danger btn-sm" onclick="exportData('attendance','pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="cursor:default;">
+                        <div style="font-size:24px;">👨‍🎓</div>
+                        <div class="label" style="font-size:14px;font-weight:600;margin-top:8px;">Students Export</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Download student list</div>
+                        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn btn-success btn-sm" onclick="exportData('students','excel')"><i class="fas fa-file-excel"></i> Excel</button>
+                            <button class="btn btn-danger btn-sm" onclick="exportData('students','pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="cursor:default;">
+                        <div style="font-size:24px;">📈</div>
+                        <div class="label" style="font-size:14px;font-weight:600;margin-top:8px;">Full System Report</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Complete system report as PDF</div>
+                        <div style="margin-top:12px;">
+                            <button class="btn btn-danger btn-sm" onclick="exportData('report','pdf')"><i class="fas fa-file-pdf"></i> Generate Report</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:20px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);padding:16px;">
+                    <h4 style="margin-bottom:12px;color:var(--primary);">Filter Attendance Export</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Class</label>
+                            <select id="exportClassFilter">
+                                <option value="">All Classes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="date" id="exportStartDate">
+                        </div>
+                        <div class="form-group">
+                            <label>End Date</label>
+                            <input type="date" id="exportEndDate">
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="switchPage('dashboard')" style="margin-top:16px;"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+            </div>
+
+            <!-- ===== NOTIFICATIONS PAGE ===== -->
+            <div class="page-container" id="notificationsPage">
+                <h3>Email Notifications</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">Send attendance alerts and low attendance warnings</p>
+                <div class="grid-2">
+                    <div class="stat-card" style="cursor:default;">
+                        <div style="font-size:24px;">📧</div>
+                        <div class="label" style="font-size:14px;font-weight:600;margin-top:8px;">Test Email</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Verify email configuration</div>
+                        <div style="margin-top:12px;display:flex;gap:8px;">
+                            <input type="email" id="testEmailInput" placeholder="Enter email" style="flex:1;padding:6px 10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px;">
+                            <button class="btn btn-primary btn-sm" onclick="sendTestEmail()"><i class="fas fa-paper-plane"></i> Send</button>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="cursor:default;">
+                        <div style="font-size:24px;">⚠️</div>
+                        <div class="label" style="font-size:14px;font-weight:600;margin-top:8px;">Low Attendance Warnings</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Send warnings to students below threshold</div>
+                        <div style="margin-top:12px;display:flex;gap:8px;align-items:center;">
+                            <input type="number" id="thresholdInput" value="75" min="0" max="100" style="width:60px;padding:6px 10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px;">
+                            <span style="font-size:12px;color:var(--text-muted);">% threshold</span>
+                            <button class="btn btn-warning btn-sm" onclick="viewLowAttendance()"><i class="fas fa-eye"></i> View</button>
+                            <button class="btn btn-danger btn-sm" onclick="sendBulkWarnings()"><i class="fas fa-paper-plane"></i> Send All</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="lowAttendanceResults" style="margin-top:20px;"></div>
+                <button class="btn btn-primary" onclick="switchPage('dashboard')" style="margin-top:16px;"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+            </div>
+
+            <!-- ===== QR CODE PAGE ===== -->
+            <div class="page-container" id="qrcodePage">
+                <h3>QR Code Attendance</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">Generate time-based QR codes for students to check in</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);padding:20px;">
+                        <h4 style="margin-bottom:16px;color:var(--primary);">Generate QR Code</h4>
+                        <div class="form-group">
+                            <label>Select Class</label>
+                            <select id="qrClassSelect">
+                                <option value="">Select Class</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Validity (seconds)</label>
+                            <input type="number" id="qrValidity" value="60" min="10" max="300">
+                        </div>
+                        <button class="btn btn-primary" onclick="generateQRCode()"><i class="fas fa-qrcode"></i> Generate</button>
+                        <div id="qrCodeDisplay" style="margin-top:16px;text-align:center;"></div>
+                        <div id="qrCodeInfo" style="margin-top:12px;text-align:center;font-size:13px;color:var(--text-secondary);"></div>
+                    </div>
+                    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);padding:20px;">
+                        <h4 style="margin-bottom:16px;color:var(--primary);">Manual Code Entry</h4>
+                        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Students can also enter the code manually</p>
+                        <div id="qrCodeText" style="font-size:32px;font-weight:800;text-align:center;letter-spacing:8px;color:var(--primary);padding:20px;background:var(--bg-secondary);border-radius:8px;border:2px dashed var(--border-color);">----------</div>
+                        <div id="qrCountdown" style="text-align:center;margin-top:12px;font-size:14px;color:var(--warning);"></div>
+                        <button class="btn btn-outline btn-sm" onclick="refreshQRCode()" style="margin-top:12px;width:100%;justify-content:center;"><i class="fas fa-sync-alt"></i> Refresh Code</button>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="switchPage('dashboard')" style="margin-top:16px;"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+            </div>
+
+            <!-- ===== BULK OPERATIONS PAGE ===== -->
+            <div class="page-container" id="bulkPage">
+                <h3>Bulk Operations</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">Import students, bulk mark attendance, and batch create classes</p>
+                <div class="grid-2">
+                    <div class="stat-card" style="cursor:default;">
+                        <div style="font-size:24px;">📥</div>
+                        <div class="label" style="font-size:14px;font-weight:600;margin-top:8px;">Import Students from CSV</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Upload a CSV file with student data</div>
+                        <div style="margin-top:12px;">
+                            <button class="btn btn-outline btn-sm" onclick="downloadCSVTemplate()" style="margin-bottom:8px;"><i class="fas fa-download"></i> Download Template</button>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <input type="file" id="csvFileInput" accept=".csv" style="font-size:12px;color:var(--text-secondary);">
+                                <button class="btn btn-primary btn-sm" onclick="uploadCSV()"><i class="fas fa-upload"></i> Import</button>
+                            </div>
+                        </div>
+                        <div id="csvImportResult" style="margin-top:8px;font-size:12px;"></div>
+                    </div>
+                    <div class="stat-card" style="cursor:default;">
+                        <div style="font-size:24px;">✅</div>
+                        <div class="label" style="font-size:14px;font-weight:600;margin-top:8px;">Bulk Mark Attendance</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Mark all students present at once</div>
+                        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                            <select id="bulkClassSelect" style="flex:1;min-width:120px;padding:6px 10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px;">
+                                <option value="">Select Class</option>
+                            </select>
+                            <select id="bulkStatusSelect" style="padding:6px 10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:12px;">
+                                <option value="present">Present</option>
+                                <option value="absent">Absent</option>
+                                <option value="late">Late</option>
+                                <option value="excused">Excused</option>
+                            </select>
+                            <button class="btn btn-success btn-sm" onclick="bulkMarkAllPresent()"><i class="fas fa-check-double"></i> All Present</button>
+                        </div>
+                        <div id="bulkMarkResult" style="margin-top:8px;font-size:12px;"></div>
+                    </div>
+                    <div class="stat-card" style="cursor:default;">
+                        <div style="font-size:24px;">📚</div>
+                        <div class="label" style="font-size:14px;font-weight:600;margin-top:8px;">Batch Create Classes</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Create multiple classes at once</div>
+                        <div style="margin-top:12px;">
+                            <button class="btn btn-primary btn-sm" onclick="openBatchClassModal()"><i class="fas fa-plus"></i> Open Batch Creator</button>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="switchPage('dashboard')" style="margin-top:16px;"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+            </div>
+
             <!-- ===== REPORTS PAGE ===== -->
             <div class="page-container" id="reportsPage">
                 <h3>📊 Reports</h3>
@@ -1030,6 +671,63 @@
                     <select id="studentClass">
                         <option value="">Select Class</option>
                     </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select id="studentDepartment">
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="Physics">Physics</option>
+                            <option value="Biology">Biology</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Business">Business</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Entry Year</label>
+                        <select id="studentEntryYear">
+                            <option value="">Select Year</option>
+                            <option value="2026">2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Level (Year of Study)</label>
+                        <select id="studentLevel">
+                            <option value="">Select Level</option>
+                            <option value="1st Year">1st Year</option>
+                            <option value="2nd Year">2nd Year</option>
+                            <option value="3rd Year">3rd Year</option>
+                            <option value="4th Year">4th Year</option>
+                            <option value="5th Year">5th Year</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Semester</label>
+                        <select id="studentSemester">
+                            <option value="">Select Semester</option>
+                            <option value="1st">1st Semester</option>
+                            <option value="2nd">2nd Semester</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Section</label>
+                        <select id="studentSection">
+                            <option value="">Select Section</option>
+                            <option value="A">Section A</option>
+                            <option value="B">Section B</option>
+                            <option value="C">Section C</option>
+                            <option value="D">Section D</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-outline" onclick="closeModal('addStudentModal')">Cancel</button>
@@ -1210,11 +908,34 @@
         document.getElementById('userName').textContent = user.full_name || 'Admin';
         document.getElementById('adminName').textContent = user.full_name || 'Admin';
         document.getElementById('userAvatar').textContent = (user.full_name || 'A').charAt(0).toUpperCase();
+        if (user.profile_photo) {
+            document.getElementById('userAvatar').innerHTML = `<img src="/uploads/photos/${user.profile_photo}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+        }
         document.getElementById('profileName').textContent = user.full_name || 'Admin';
 
         if (!localStorage.getItem('token')) {
             window.location.href = 'login.html';
         }
+
+        async function refreshProfile() {
+            try {
+                const res = await fetch(`${API_URL}/users/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success && data.user) {
+                    const fresh = data.user;
+                    let changed = false;
+                    if (fresh.profile_photo && fresh.profile_photo !== user.profile_photo) { user.profile_photo = fresh.profile_photo; changed = true; }
+                    if (fresh.full_name && fresh.full_name !== user.full_name) { user.full_name = fresh.full_name; changed = true; }
+                    if (changed) {
+                        localStorage.setItem('user', JSON.stringify(user));
+                        if (fresh.profile_photo) {
+                            document.getElementById('userAvatar').innerHTML = `<img src="/uploads/photos/${fresh.profile_photo}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+        refreshProfile();
 
         // ===== THEME TOGGLE =====
         function toggleTheme() {
@@ -1305,7 +1026,11 @@
                 'classes': '📚 Class Management',
                 'courses': '📖 Course Management',
                 'reports': '📊 Reports',
-                'settings': '⚙️ Settings'
+                'settings': '⚙️ Settings',
+                'exports': '📤 Export Data',
+                'notifications': '📧 Email Notifications',
+                'qrcode': '📱 QR Code Attendance',
+                'bulk': '📦 Bulk Operations'
             };
             const subtitles = {
                 'students': 'Manage all students in the system',
@@ -1313,7 +1038,11 @@
                 'classes': 'Manage all classes',
                 'courses': 'Manage all courses',
                 'reports': 'Generate reports for students, teachers, classes, and courses',
-                'settings': 'System settings and preferences'
+                'settings': 'System settings and preferences',
+                'exports': 'Download attendance sheets and reports',
+                'notifications': 'Send attendance alerts and warnings',
+                'qrcode': 'Generate QR codes for student check-in',
+                'bulk': 'Import students, bulk mark attendance, batch create classes'
             };
 
             document.getElementById('pageTitle').textContent = titles[page] || 'Admin Dashboard';
@@ -1337,6 +1066,17 @@
                 updateReportStats();
             } else if (page === 'settings') {
                 document.getElementById('settingsPage').classList.add('active');
+            } else if (page === 'exports') {
+                document.getElementById('exportsPage').classList.add('active');
+                populateBulkClassDropdowns();
+            } else if (page === 'notifications') {
+                document.getElementById('notificationsPage').classList.add('active');
+            } else if (page === 'qrcode') {
+                document.getElementById('qrcodePage').classList.add('active');
+                populateBulkClassDropdowns();
+            } else if (page === 'bulk') {
+                document.getElementById('bulkPage').classList.add('active');
+                populateBulkClassDropdowns();
             }
         }
 
@@ -1392,6 +1132,23 @@
                 const data = await fetchAPI('/users/students');
                 if (data.success) {
                     allStudents = data.students || [];
+
+                    const eligibilityMap = {};
+                    const uniqueStudentIds = [...new Set(allStudents.map(s => s.id))];
+                    await Promise.all(uniqueStudentIds.map(async (sid) => {
+                        try {
+                            const elRes = await fetch(`${API_URL}/users/${sid}/eligibility`, {
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            const elData = await elRes.json();
+                            if (elData.success) {
+                                const blocked = elData.eligibility.some(e => !e.eligible_for_exam);
+                                eligibilityMap[sid] = blocked ? 'blocked' : 'eligible';
+                            }
+                        } catch (e) {}
+                    }));
+                    allStudents.forEach(s => { s.eligibility = eligibilityMap[s.id] || 'unknown'; });
+
                     renderStudents();
                 }
             } catch (error) {
@@ -1410,7 +1167,7 @@
             const pageData = allStudents.slice(start, end);
 
             if (total === 0) {
-                tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><span class="icon">👨‍🎓</span>No students found</div></td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10"><div class="empty"><span class="icon">👨‍🎓</span>No students found</div></td></tr>`;
                 document.getElementById('studentPaginationInfo').textContent = 'Showing 0-0 of 0';
                 document.getElementById('studentPaginationButtons').innerHTML = '';
                 return;
@@ -1422,15 +1179,27 @@
                 const statusText = s.is_active !== false ? 'Active' : 'Inactive';
                 const className = s.class_name ? `${s.class_name} ${s.class_section || ''}` : 'Not Assigned';
 
+                const photoHtml = s.profile_photo
+                    ? `<img src="/uploads/photos/${s.profile_photo}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
+                    : `<div style="width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">${(s.full_name || '?').charAt(0).toUpperCase()}</div>`;
+
+                const eligibilityBadge = s.eligibility === 'blocked'
+                    ? '<span style="background:rgba(239,68,68,0.12);color:#ef4444;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:600;">BLOCKED</span>'
+                    : s.eligibility === 'eligible'
+                        ? '<span style="background:rgba(16,185,129,0.12);color:#10b981;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:600;">ELIGIBLE</span>'
+                        : '<span style="background:rgba(156,163,175,0.12);color:#9ca3af;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:600;">N/A</span>';
+
                 html += `
                     <tr>
                         <td>${start + index + 1}</td>
                         <td>${s.id}</td>
+                        <td>${photoHtml}</td>
                         <td>${s.username}</td>
                         <td><strong>${s.full_name}</strong></td>
                         <td>${s.email || '-'}</td>
                         <td><span class="class-badge">${className}</span></td>
                         <td><span class="badge ${statusBadge}">${statusText}</span></td>
+                        <td>${eligibilityBadge}</td>
                         <td>
                             <button class="btn btn-danger btn-xs" onclick="deleteUser(${s.id}, 'students')" title="Delete">
                                 <i class="fas fa-trash"></i>
@@ -1890,6 +1659,11 @@
                     email: document.getElementById('studentEmail').value.trim(),
                     password: document.getElementById('studentPassword').value.trim(),
                     class_id: document.getElementById('studentClass').value || null,
+                    department: document.getElementById('studentDepartment').value || null,
+                    entry_year: document.getElementById('studentEntryYear').value || null,
+                    level: document.getElementById('studentLevel').value || null,
+                    semester: document.getElementById('studentSemester').value || null,
+                    section: document.getElementById('studentSection').value || null,
                     role: 'student'
                 };
 
@@ -2095,7 +1869,7 @@
             document.body.appendChild(notification);
             setTimeout(() => {
                 notification.style.opacity = '0';
-                notification.style.transform = 'translateY(20px)';
+                notification.style.transforcm = 'translateY(20px)';
                 setTimeout(() => notification.remove(), 300);
             }, 3000);
         }
@@ -2153,6 +1927,362 @@
             }
         });
 
+        // ============================================
+        // EXPORT FUNCTIONS
+        // ============================================
+        async function exportData(type, format) {
+            let url = '';
+            let params = new URLSearchParams();
+
+            const classFilter = document.getElementById('exportClassFilter')?.value;
+            const startDate = document.getElementById('exportStartDate')?.value;
+            const endDate = document.getElementById('exportEndDate')?.value;
+
+            if (classFilter) params.set('class_id', classFilter);
+            if (startDate) params.set('start_date', startDate);
+            if (endDate) params.set('end_date', endDate);
+
+            const queryString = params.toString() ? `?${params.toString()}` : '';
+
+            if (type === 'attendance') {
+                url = `${API_URL}/export/attendance/${format}${queryString}`;
+            } else if (type === 'students') {
+                url = `${API_URL}/export/students/${format}`;
+            } else if (type === 'report') {
+                url = `${API_URL}/export/report/pdf`;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Export failed');
+
+                const blob = await response.blob();
+                const disposition = response.headers.get('Content-Disposition');
+                let filename = `export_${type}_${new Date().toISOString().split('T')[0]}`;
+                if (format === 'excel') filename += '.xlsx';
+                else filename += '.pdf';
+
+                if (disposition) {
+                    const match = disposition.match(/filename=([^;]+)/);
+                    if (match) filename = match[1];
+                }
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                link.click();
+                URL.revokeObjectURL(link.href);
+
+                showNotification(`✅ ${type} exported as ${format.toUpperCase()}`, 'success');
+            } catch (error) {
+                showNotification('❌ Export failed: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // NOTIFICATION FUNCTIONS
+        // ============================================
+        async function sendTestEmail() {
+            const email = document.getElementById('testEmailInput').value.trim();
+            if (!email) {
+                showNotification('❌ Please enter an email address', 'error');
+                return;
+            }
+
+            try {
+                const data = await fetchAPI('/notifications/test-email', {
+                    method: 'POST',
+                    body: JSON.stringify({ email })
+                });
+                if (data.success) {
+                    showNotification('✅ ' + data.message, 'success');
+                } else {
+                    showNotification('❌ ' + (data.message || 'Failed'), 'error');
+                }
+            } catch (error) {
+                showNotification('❌ Failed to send test email', 'error');
+            }
+        }
+
+        async function viewLowAttendance() {
+            const threshold = document.getElementById('thresholdInput').value || 75;
+            const container = document.getElementById('lowAttendanceResults');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div> Loading...</div>';
+
+            try {
+                const data = await fetchAPI(`/notifications/low-attendance-students?threshold=${threshold}`);
+                if (data.success && data.students.length > 0) {
+                    let html = '<table style="width:100%;font-size:13px;"><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Class</th><th>Attended</th><th>Total</th><th>Rate</th></tr></thead><tbody>';
+                    data.students.forEach((s, i) => {
+                        html += `<tr><td>${i + 1}</td><td><strong>${s.full_name}</strong></td><td>${s.email}</td><td>${s.class_name} ${s.section}</td><td>${s.attended}</td><td>${s.total_classes}</td><td style="color:var(--danger);font-weight:bold;">${s.percentage || 0}%</td></tr>`;
+                    });
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<p style="color:var(--text-secondary);padding:16px;">No students below the threshold.</p>';
+                }
+            } catch (error) {
+                container.innerHTML = '<p style="color:var(--danger);padding:16px;">Failed to load data.</p>';
+            }
+        }
+
+        async function sendBulkWarnings() {
+            const threshold = document.getElementById('thresholdInput').value || 75;
+            if (!confirm(`Send low attendance warnings to all students below ${threshold}%?`)) return;
+
+            try {
+                const data = await fetchAPI('/notifications/bulk-low-attendance', {
+                    method: 'POST',
+                    body: JSON.stringify({ threshold: parseInt(threshold) })
+                });
+                if (data.success) {
+                    showNotification(`✅ ${data.message}`, 'success');
+                } else {
+                    showNotification('❌ ' + (data.message || 'Failed'), 'error');
+                }
+            } catch (error) {
+                showNotification('❌ Failed to send warnings', 'error');
+            }
+        }
+
+        // ============================================
+        // QR CODE FUNCTIONS
+        // ============================================
+        let qrRefreshInterval = null;
+
+        async function generateQRCode() {
+            const classId = document.getElementById('qrClassSelect').value;
+            const validity = document.getElementById('qrValidity').value || 60;
+
+            if (!classId) {
+                showNotification('❌ Please select a class', 'error');
+                return;
+            }
+
+            try {
+                const data = await fetchAPI('/qr/generate', {
+                    method: 'POST',
+                    body: JSON.stringify({ class_id: parseInt(classId), validity_seconds: parseInt(validity) })
+                });
+
+                if (data.success) {
+                    document.getElementById('qrCodeDisplay').innerHTML = `<img src="${data.qr_image}" style="max-width:280px;border-radius:12px;border:2px solid var(--border-color);">`;
+                    document.getElementById('qrCodeText').textContent = data.code;
+                    document.getElementById('qrCodeInfo').innerHTML = `Class ID: ${data.class_id} | Expires in: <span id="qrExpiryCountdown">${data.expires_in}</span>s`;
+
+                    startQRCountdown(data.expires_in);
+                    showNotification('✅ QR Code generated', 'success');
+                } else {
+                    showNotification('❌ ' + (data.message || 'Failed'), 'error');
+                }
+            } catch (error) {
+                showNotification('❌ Failed to generate QR code', 'error');
+            }
+        }
+
+        function startQRCountdown(seconds) {
+            if (qrRefreshInterval) clearInterval(qrRefreshInterval);
+            let remaining = seconds;
+            qrRefreshInterval = setInterval(() => {
+                remaining--;
+                const el = document.getElementById('qrCountdown');
+                if (el) el.textContent = `Expires in ${remaining}s`;
+                const el2 = document.getElementById('qrExpiryCountdown');
+                if (el2) el2.textContent = remaining;
+                if (remaining <= 0) {
+                    clearInterval(qrRefreshInterval);
+                    document.getElementById('qrCodeText').textContent = 'EXPIRED';
+                    document.getElementById('qrCodeInfo').innerHTML = '<span style="color:var(--danger);">Code expired. Click Refresh.</span>';
+                }
+            }, 1000);
+        }
+
+        async function refreshQRCode() {
+            await generateQRCode();
+        }
+
+        // ============================================
+        // BULK OPERATIONS FUNCTIONS
+        // ============================================
+        async function uploadCSV() {
+            const fileInput = document.getElementById('csvFileInput');
+            const resultDiv = document.getElementById('csvImportResult');
+
+            if (!fileInput.files[0]) {
+                showNotification('❌ Please select a CSV file', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            resultDiv.innerHTML = '<span style="color:var(--primary);">Uploading...</span>';
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/bulk/import-students`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    resultDiv.innerHTML = `<span style="color:var(--success);">✅ ${data.message}</span>`;
+                    showNotification(`✅ ${data.message}`, 'success');
+                    fileInput.value = '';
+                    await loadData();
+                } else {
+                    resultDiv.innerHTML = `<span style="color:var(--danger);">❌ ${data.message}</span>`;
+                    showNotification('❌ ' + (data.message || 'Import failed'), 'error');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span style="color:var(--danger);">❌ Upload failed</span>`;
+                showNotification('❌ Upload failed', 'error');
+            }
+        }
+
+        async function downloadCSVTemplate() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/bulk/csv-template`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const blob = await response.blob();
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'student_import_template.csv';
+                link.click();
+                showNotification('✅ Template downloaded', 'success');
+            } catch (error) {
+                showNotification('❌ Failed to download template', 'error');
+            }
+        }
+
+        async function bulkMarkAllPresent() {
+            const classId = document.getElementById('bulkClassSelect').value;
+            const resultDiv = document.getElementById('bulkMarkResult');
+
+            if (!classId) {
+                showNotification('❌ Please select a class', 'error');
+                return;
+            }
+
+            if (!confirm('Mark ALL students as present for this class?')) return;
+
+            try {
+                const data = await fetchAPI('/bulk/mark-all-present', {
+                    method: 'POST',
+                    body: JSON.stringify({ class_id: parseInt(classId) })
+                });
+
+                if (data.success) {
+                    resultDiv.innerHTML = `<span style="color:var(--success);">✅ ${data.message}</span>`;
+                    showNotification(`✅ ${data.message}`, 'success');
+                } else {
+                    resultDiv.innerHTML = `<span style="color:var(--danger);">❌ ${data.message}</span>`;
+                    showNotification('❌ ' + (data.message || 'Failed'), 'error');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span style="color:var(--danger);">❌ Failed</span>`;
+                showNotification('❌ Failed to mark attendance', 'error');
+            }
+        }
+
+        function openBatchClassModal() {
+            openModal('batchClassModal');
+        }
+
+        function addBatchClassRow() {
+            const container = document.getElementById('batchClassList');
+            const row = document.createElement('div');
+            row.className = 'batch-class-row';
+            row.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end;';
+            row.innerHTML = `
+                <div class="form-group"><input type="text" placeholder="Class Name" class="bc-name" required></div>
+                <div class="form-group"><select class="bc-section"><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+                <div class="form-group"><select class="bc-year"><option>2024</option><option>2025</option><option>2026</option></select></div>
+                <div class="form-group"><select class="bc-semester"><option>Fall</option><option>Spring</option><option>Summer</option></select></div>
+                <button class="btn btn-danger btn-sm" onclick="removeBatchClassRow(this)" style="margin-bottom:4px;"><i class="fas fa-trash"></i></button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeBatchClassRow(btn) {
+            const rows = document.querySelectorAll('.batch-class-row');
+            if (rows.length > 1) {
+                btn.closest('.batch-class-row').remove();
+            }
+        }
+
+        async function submitBatchClasses() {
+            const rows = document.querySelectorAll('.batch-class-row');
+            const classes = [];
+            const resultDiv = document.getElementById('batchClassResult');
+
+            rows.forEach(row => {
+                const name = row.querySelector('.bc-name').value.trim();
+                const section = row.querySelector('.bc-section').value;
+                const year = row.querySelector('.bc-year').value;
+                const semester = row.querySelector('.bc-semester').value;
+
+                if (name) {
+                    classes.push({ name, section, year, semester });
+                }
+            });
+
+            if (classes.length === 0) {
+                showNotification('❌ Please add at least one class', 'error');
+                return;
+            }
+
+            try {
+                const data = await fetchAPI('/bulk/batch-classes', {
+                    method: 'POST',
+                    body: JSON.stringify({ classes })
+                });
+
+                if (data.success) {
+                    resultDiv.innerHTML = `<span style="color:var(--success);">✅ ${data.message}</span>`;
+                    showNotification(`✅ ${data.message}`, 'success');
+                    await loadData();
+                    await populateBulkClassDropdowns();
+                } else {
+                    resultDiv.innerHTML = `<span style="color:var(--danger);">❌ ${data.message}</span>`;
+                    showNotification('❌ ' + (data.message || 'Failed'), 'error');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span style="color:var(--danger);">❌ Failed</span>`;
+                showNotification('❌ Batch creation failed', 'error');
+            }
+        }
+
+        async function populateBulkClassDropdowns() {
+            const selects = ['bulkClassSelect', 'qrClassSelect', 'exportClassFilter'];
+            selects.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = '<option value="">Select Class</option>';
+            });
+            try {
+                const data = await fetchAPI('/classes');
+                if (data.success) {
+                    data.classes.forEach(c => {
+                        selects.forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el) el.innerHTML += `<option value="${c.id}">${c.name} - ${c.section}</option>`;
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading classes for dropdowns:', error);
+            }
+        }
+
         // ===== INIT =====
         loadData();
 
@@ -2160,6 +2290,31 @@
         console.log(`%c👑 Welcome, ${user.full_name || 'Admin'}`, 'font-size:14px;color:#22C55E;');
         console.log(`%c📊 Total Students: ${allStudents.length}, Teachers: ${allTeachers.length}, Classes: ${allClasses.length}, Courses: ${allCourses.length}`, 'font-size:12px;color:#94A3B8;');
     </script>
+
+    <!-- ===== BATCH CLASS MODAL ===== -->
+    <div class="modal-overlay" id="batchClassModal">
+        <div class="modal" style="max-width:650px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-layer-group"></i> Batch Create Classes</h2>
+                <button class="close-btn" onclick="closeModal('batchClassModal')">&times;</button>
+            </div>
+            <div id="batchClassList">
+                <div class="batch-class-row" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end;">
+                    <div class="form-group"><label>Name</label><input type="text" placeholder="Class Name" class="bc-name" required></div>
+                    <div class="form-group"><label>Section</label><select class="bc-section"><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+                    <div class="form-group"><label>Year</label><select class="bc-year"><option>2024</option><option>2025</option><option>2026</option></select></div>
+                    <div class="form-group"><label>Semester</label><select class="bc-semester"><option>Fall</option><option>Spring</option><option>Summer</option></select></div>
+                    <button class="btn btn-danger btn-sm" onclick="removeBatchClassRow(this)" style="margin-bottom:4px;"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="addBatchClassRow()" style="margin-bottom:16px;"><i class="fas fa-plus"></i> Add Row</button>
+            <div id="batchClassResult" style="margin-bottom:12px;font-size:12px;"></div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-outline" onclick="closeModal('batchClassModal')">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitBatchClasses()">Create All</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ===== CHANGE PASSWORD MODAL ===== -->
     <div class="modal-overlay" id="changePasswordModal">

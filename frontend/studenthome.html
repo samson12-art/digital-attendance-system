@@ -4,587 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --bg-primary: #0a0a1a;
-            --bg-secondary: #1a1a2e;
-            --bg-card: #16213e;
-            --bg-hover: #1a2744;
-            --bg-sidebar: rgba(15,15,26,0.98);
-            --text-primary: #ffffff;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --border-color: rgba(255,255,255,0.06);
-            --shadow: 0 4px 24px rgba(0,0,0,0.3);
-            --shadow-lg: 0 8px 40px rgba(0,0,0,0.4);
-            --primary: #4F46E5;
-            --success: #22C55E;
-            --danger: #EF4444;
-            --warning: #F59E0B;
-            --sidebar-width: 250px;
-            --radius: 12px;
-            --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        body.light-mode {
-            --bg-primary: #f1f5f9;
-            --bg-secondary: #ffffff;
-            --bg-card: #ffffff;
-            --bg-hover: #f8fafc;
-            --bg-sidebar: rgba(255,255,255,0.98);
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #94a3b8;
-            --border-color: rgba(0,0,0,0.06);
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            transition: var(--transition);
-        }
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--bg-sidebar);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            z-index: 100;
-            transition: var(--transition);
-            backdrop-filter: blur(20px);
-            overflow-y: auto;
-        }
-        .sidebar::-webkit-scrollbar { width: 4px; }
-        .sidebar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
-        .sidebar-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 20px 20px 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .sidebar-logo .logo-icon { font-size: 28px; }
-        .sidebar-logo .logo-text { font-weight: 800; font-size: 18px; }
-        .sidebar-logo .logo-text span { color: var(--primary); }
-        .sidebar-logo .logo-badge {
-            font-size: 9px;
-            background: var(--primary);
-            color: #fff;
-            padding: 2px 10px;
-            border-radius: 20px;
-            margin-left: auto;
-            font-weight: 600;
-        }
-        .sidebar-nav { flex: 1; padding: 16px 12px; }
-        .nav-section { margin-bottom: 20px; }
-        .nav-label {
-            display: block;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            color: var(--text-muted);
-            padding: 0 12px 8px;
-            font-weight: 600;
-        }
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            color: var(--text-secondary);
-            transition: var(--transition);
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            width: 100%;
-            text-align: left;
-            margin-bottom: 2px;
-        }
-        .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
-        .nav-item.active { background: rgba(79,70,229,0.12); color: var(--primary); }
-        .nav-item i { width: 22px; text-align: center; font-size: 16px; }
-        .nav-item .nav-badge {
-            margin-left: auto;
-            background: var(--danger);
-            color: #fff;
-            font-size: 9px;
-            padding: 1px 8px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-        .sidebar-footer {
-            padding: 16px 16px 20px;
-            border-top: 1px solid var(--border-color);
-        }
-        .sidebar-user {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .sidebar-user .avatar {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), #7C3AED);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 15px;
-            color: #fff;
-        }
-        .sidebar-user .user-info { flex: 1; }
-        .sidebar-user .user-info .name { font-size: 14px; font-weight: 600; }
-        .sidebar-user .user-info .role { font-size: 11px; color: var(--text-muted); }
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 28px;
-            height: 64px;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            backdrop-filter: blur(12px);
-            transition: var(--transition);
-        }
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .topbar-left .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--text-primary);
-            font-size: 20px;
-            cursor: pointer;
-        }
-        .topbar-left .page-title { font-size: 20px; font-weight: 700; }
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .topbar-right .search-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 50px;
-            padding: 6px 16px;
-            transition: var(--transition);
-        }
-        .topbar-right .search-box:focus-within {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
-        }
-        .topbar-right .search-box input {
-            background: none;
-            border: none;
-            outline: none;
-            color: var(--text-primary);
-            font-size: 13px;
-            width: 160px;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        .topbar-right .search-box input::placeholder { color: var(--text-muted); }
-        .topbar-right .search-box i { color: var(--text-muted); }
-        .topbar-right .date-time {
-            color: var(--text-muted);
-            font-size: 13px;
-            background: var(--bg-card);
-            padding: 6px 16px;
-            border-radius: 50px;
-            border: 1px solid var(--border-color);
-        }
-        .theme-toggle {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            color: var(--text-secondary);
-            font-size: 16px;
-        }
-        .theme-toggle:hover {
-            background: var(--bg-hover);
-            transform: rotate(15deg);
-        }
-        .dashboard-content {
-            padding: 24px 28px;
-            flex: 1;
-        }
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .page-header h2 { font-size: 24px; font-weight: 700; }
-        .page-header .subtitle { color: var(--text-secondary); font-size: 14px; }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .stat-card {
-            background: var(--bg-card);
-            padding: 18px 20px;
-            border-radius: var(--radius);
-            border: 1px solid var(--border-color);
-            transition: var(--transition);
-        }
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
-        }
-        .stat-card .number { font-size: 28px; font-weight: 700; }
-        .stat-card .label { color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
-        .stat-card .number.green { color: var(--success); }
-        .stat-card .number.red { color: var(--danger); }
-        .stat-card .number.blue { color: var(--primary); }
-        .stat-card .number.yellow { color: var(--warning); }
-        .stat-card .number.purple { color: #8B5CF6; }
-        .btn {
-            padding: 8px 18px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 13px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #6366F1; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(79,70,229,0.3); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-success:hover { background: #16A34A; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: #DC2626; }
-        .btn-warning { background: var(--warning); color: white; }
-        .btn-warning:hover { background: #D97706; }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-        }
-        .btn-outline:hover { background: var(--bg-hover); color: var(--text-primary); }
-        .btn-sm { padding: 4px 12px; font-size: 11px; }
-        .btn-xs { padding: 2px 8px; font-size: 10px; border-radius: 4px; }
-        .table-container {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-            transition: var(--transition);
-            display: none;
-        }
-        .table-container.active { display: block; }
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .table-header h3 { font-size: 16px; font-weight: 600; }
-        .table-header .total { color: var(--text-secondary); font-size: 14px; }
-        .table-wrapper { overflow-x: auto; padding: 0 4px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        table thead { background: var(--bg-hover); }
-        table th {
-            text-align: left;
-            padding: 12px 16px;
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            vertical-align: middle;
-        }
-        table tr:hover td { background: var(--bg-hover); }
-        .badge {
-            padding: 3px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        .badge-present { background: rgba(34,197,94,0.15); color: var(--success); }
-        .badge-absent { background: rgba(239,68,68,0.15); color: var(--danger); }
-        .badge-late { background: rgba(245,158,11,0.15); color: var(--warning); }
-        .badge-active { background: rgba(34,197,94,0.15); color: var(--success); }
-        .badge-inactive { background: rgba(239,68,68,0.15); color: var(--danger); }
-        .class-badge {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 600;
-            background: rgba(79,70,229,0.12);
-            color: var(--primary);
-        }
-        .pagination {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 20px;
-            border-top: 1px solid var(--border-color);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .pagination .info { color: var(--text-secondary); font-size: 13px; }
-        .pagination .pages { display: flex; gap: 4px; flex-wrap: wrap; }
-        .pagination .pages button {
-            padding: 6px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            background: transparent;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 13px;
-        }
-        .pagination .pages button:hover,
-        .pagination .pages button.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        .empty { text-align: center; padding: 40px; color: var(--text-secondary); }
-        .empty .icon { font-size: 48px; display: block; margin-bottom: 12px; }
-        .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
-        .spinner {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 3px solid var(--border-color);
-            border-radius: 50%;
-            border-top-color: var(--primary);
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .page-container {
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border-color);
-            padding: 24px;
-            margin-top: 16px;
-            display: none;
-        }
-        .page-container.active { display: block; }
-        .page-container h3 { margin-bottom: 16px; color: var(--primary); }
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: var(--border-color);
-            border-radius: 4px;
-            margin-top: 8px;
-            overflow: hidden;
-        }
-        .progress-bar .fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.5s ease;
-        }
-        .fill-high { background: var(--success); }
-        .fill-medium { background: var(--warning); }
-        .fill-low { background: var(--danger); }
-        .course-card {
-            background: var(--bg-hover);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            padding: 16px;
-            transition: var(--transition);
-            margin-bottom: 12px;
-        }
-        .course-card:hover { border-color: var(--primary); }
-        .course-card .course-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .course-card .course-header .code { font-weight: 700; font-size: 16px; color: var(--primary); }
-        .course-card .course-header .name { font-size: 14px; }
-        .course-card .course-details { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 8px; font-size: 13px; color: var(--text-secondary); }
-        .course-card .course-details span { display: flex; align-items: center; gap: 4px; }
-        .schedule-table-wrap {
-            overflow-x: auto;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            background: var(--bg-primary);
-        }
-        .schedule-table {
-            width: 100%;
-            min-width: 820px;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        .schedule-table th,
-        .schedule-table td {
-            border: 1px solid var(--border-color);
-            padding: 8px 10px;
-            vertical-align: top;
-        }
-        .schedule-table th {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-            font-weight: 700;
-            text-align: left;
-        }
-        .schedule-table .section-title {
-            text-align: center;
-            font-size: 16px;
-            background: rgba(79,70,229,0.16);
-            color: var(--text-primary);
-        }
-        .schedule-table .course-name { font-weight: 600; }
-        .schedule-table .room { font-weight: 800; color: var(--text-primary); white-space: nowrap; }
-        .schedule-table .lab { font-weight: 800; }
-        .schedule-table .highlight td:not(.course-name) { background: rgba(250,204,21,0.18); }
-        .schedule-table .highlight .room { color: #facc15; }
-        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); width: 280px; }
-            .sidebar.open { transform: translateX(0); }
-            .topbar-left .menu-toggle { display: block; }
-            .main-content { margin-left: 0; }
-            .topbar { padding: 0 16px; flex-wrap: wrap; height: auto; padding: 10px 16px; }
-            .topbar-right { flex-wrap: wrap; gap: 8px; }
-            .topbar-right .search-box input { width: 100px; }
-            .topbar-right .date-time { display: none; }
-            .dashboard-content { padding: 16px; }
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-        }
-        @media (max-width: 480px) {
-            .stats-grid { grid-template-columns: 1fr; }
-            .table-header { flex-direction: column; align-items: flex-start; }
-            .pagination { flex-direction: column; align-items: center; }
-        }
-
-        /* ===== MODAL ===== */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal-overlay .modal {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 24px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: var(--shadow-lg);
-            animation: modalIn 0.2s ease;
-        }
-        @keyframes modalIn {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        .modal-overlay .modal .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        .modal-overlay .modal .modal-header h2 { font-size: 20px; font-weight: 700; }
-        .modal-overlay .modal .modal-header .close-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 24px;
-            cursor: pointer;
-            padding: 0 4px;
-            line-height: 1;
-        }
-        .modal-overlay .modal .modal-header .close-btn:hover { color: var(--text-primary); }
-        .modal-overlay .modal .form-group { margin-bottom: 16px; }
-        .modal-overlay .modal .form-group label {
-            display: block;
-            color: var(--text-secondary);
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-        }
-        .modal-overlay .modal .form-group input,
-        .modal-overlay .modal .form-group select,
-        .modal-overlay .modal .form-group textarea {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-card);
-            color: var(--text-primary);
-            font-size: 14px;
-            outline: none;
-        }
-        .modal-overlay .modal .form-group input:focus,
-        .modal-overlay .modal .form-group select:focus { border-color: var(--primary); }
-        .modal-overlay .modal .form-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 4px;
-        }
-        .modal-overlay .modal .form-actions .btn { flex: 1; justify-content: center; }
-    </style>
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
 
     <!-- ===== SIDEBAR ===== -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-            <span class="logo-icon">📚</span>
             <div class="logo-text">Digital <span>Attendance</span></div>
             <span class="logo-badge">Student</span>
         </div>
@@ -601,6 +31,9 @@
                 <button class="nav-item" data-page="attendance" onclick="switchPage('attendance')">
                     <i class="fas fa-clipboard-check"></i> Attendance
                     <span class="nav-badge" id="attendanceBadge">0</span>
+                </button>
+                <button class="nav-item" data-page="scan" onclick="switchPage('scan')">
+                    <i class="fas fa-qrcode"></i> Scan QR
                 </button>
                 <button class="nav-item" data-page="schedule" onclick="switchPage('schedule')">
                     <i class="fas fa-calendar-alt"></i> Schedule
@@ -624,7 +57,7 @@
                 <div class="avatar" id="userAvatar">S</div>
                 <div class="user-info">
                     <div class="name" id="userName">Student</div>
-                    <div class="role">👨‍🎓 Student</div>
+                    <div class="role"><i class="fas fa-user-graduate"></i> Student</div>
                 </div>
                 <button class="btn btn-danger btn-sm" onclick="confirmLogout()" style="padding:4px 12px;">
                     <i class="fas fa-sign-out-alt"></i>
@@ -656,7 +89,7 @@
             <!-- ===== PAGE HEADER ===== -->
             <div class="page-header">
                 <div>
-                    <h2 id="pageHeader">👨‍🎓 Welcome, <span id="studentName">Student</span>!</h2>
+                    <h2 id="pageHeader">Welcome, <span id="studentName">Student</span>!</h2>
                     <p class="subtitle" id="pageSubtitle">Track your attendance and courses</p>
                 </div>
                 <div>
@@ -670,26 +103,29 @@
             <div class="stats-grid" id="statsGrid">
                 <div class="stat-card">
                     <div class="number blue" id="totalCourses">0</div>
-                    <div class="label">📚 Enrolled Courses</div>
+                    <div class="label"><i class="fas fa-book"></i> Enrolled Courses</div>
                 </div>
                 <div class="stat-card">
                     <div class="number green" id="totalPresent">0</div>
-                    <div class="label">✅ Present</div>
+                    <div class="label"><i class="fas fa-check-circle"></i> Present</div>
                 </div>
                 <div class="stat-card">
                     <div class="number red" id="totalAbsent">0</div>
-                    <div class="label">❌ Absent</div>
+                    <div class="label"><i class="fas fa-times-circle"></i> Absent</div>
                 </div>
                 <div class="stat-card">
                     <div class="number purple" id="attendanceRate">0%</div>
-                    <div class="label">📊 Attendance Rate</div>
+                    <div class="label"><i class="fas fa-chart-pie"></i> Attendance Rate</div>
                 </div>
             </div>
+
+            <!-- ===== EXAM ELIGIBILITY ALERT ===== -->
+            <div id="eligibilityAlert" style="display:none;margin-bottom:20px;padding:16px 20px;border-radius:var(--radius);border:1px solid;font-weight:700;font-size:14px;display:flex;align-items:center;gap:10px;"></div>
 
             <!-- ===== COURSES TABLE ===== -->
             <div class="table-container active" id="coursesTable">
                 <div class="table-header">
-                    <h3>📋 My Courses</h3>
+                    <h3><i class="fas fa-list"></i> My Courses</h3>
                     <span class="total">Total: <strong id="courseTotalCount">0</strong> courses</span>
                 </div>
                 <div class="table-wrapper">
@@ -719,7 +155,7 @@
             <!-- ===== ATTENDANCE TABLE ===== -->
             <div class="table-container" id="attendanceTable">
                 <div class="table-header">
-                    <h3>📋 Attendance History</h3>
+                    <h3><i class="fas fa-list"></i> Attendance History</h3>
                     <span class="total">Total: <strong id="attendanceTotalCount">0</strong> records</span>
                 </div>
                 <div class="table-wrapper">
@@ -752,10 +188,40 @@
                 </div>
             </div>
 
+            <!-- ===== SCAN QR PAGE ===== -->
+            <div class="page-container" id="scanPage">
+                <h3><i class="fas fa-qrcode"></i> Scan QR Code</h3>
+                <p class="subtitle">Enter the QR code shown by your teacher to check in</p>
+                <div class="table-container" style="display:block;max-width:500px;">
+                    <div style="padding:24px;">
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label>Select Class</label>
+                            <select id="scanClassSelect" style="width:100%;padding:10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:14px;">
+                                <option value="">Select Class</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label>QR Code</label>
+                            <input type="text" id="scanCodeInput" placeholder="Enter 8-character code" maxlength="8" style="width:100%;padding:12px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:20px;font-weight:800;text-align:center;letter-spacing:6px;text-transform:uppercase;">
+                        </div>
+                        <div id="scanLocationStatus" style="padding:10px;border-radius:8px;margin-bottom:16px;font-size:13px;display:flex;align-items:center;gap:8px;background:var(--bg-secondary);border:1px solid var(--border-color);color:var(--text-muted);">
+                            <i class="fas fa-map-marker-alt"></i> Location will be detected when you check in
+                        </div>
+                        <button class="btn btn-primary" onclick="studentCheckIn()" style="width:100%;justify-content:center;padding:12px;font-size:15px;" id="scanCheckInBtn">
+                            <i class="fas fa-check-circle"></i> Check In
+                        </button>
+                        <div id="scanResult" style="margin-top:16px;display:none;padding:12px;border-radius:8px;font-size:13px;font-weight:600;text-align:center;"></div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="switchPage('dashboard')" style="margin-top: 16px;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </button>
+            </div>
+
             <!-- ===== SCHEDULE PAGE ===== -->
             <div class="page-container" id="schedulePage">
-                <h3>📅 My Schedule</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 16px;">Your weekly class schedule</p>
+                <h3><i class="fas fa-calendar-alt"></i> My Schedule</h3>
+                <p class="subtitle">Your weekly class schedule</p>
                 <div id="scheduleContainer">
                     <div class="loading"><div class="spinner"></div> Loading schedule...</div>
                 </div>
@@ -766,31 +232,31 @@
 
             <!-- ===== REPORTS PAGE ===== -->
             <div class="page-container" id="reportsPage">
-                <h3>📊 Reports</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 16px;">Generate and view reports</p>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <h3><i class="fas fa-chart-bar"></i> Reports</h3>
+                <p class="subtitle">Generate and view reports</p>
+                <div class="settings-grid">
                     <div class="stat-card" onclick="generateReport('attendance')" style="cursor: pointer;">
-                        <div class="number green">📋</div>
+                        <div class="number green"><i class="fas fa-clipboard-list"></i></div>
                         <div class="label">Attendance Report</div>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Click to generate</div>
+                        <div class="settings-desc" style="margin-top: 8px;">Click to generate</div>
                     </div>
                     <div class="stat-card" onclick="generateReport('courses')" style="cursor: pointer;">
-                        <div class="number blue">📚</div>
+                        <div class="number blue"><i class="fas fa-book"></i></div>
                         <div class="label">Course Report</div>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Click to generate</div>
+                        <div class="settings-desc" style="margin-top: 8px;">Click to generate</div>
                     </div>
                     <div class="stat-card" onclick="generateReport('performance')" style="cursor: pointer;">
-                        <div class="number purple">📈</div>
+                        <div class="number purple"><i class="fas fa-chart-line"></i></div>
                         <div class="label">Performance Report</div>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Click to generate</div>
+                        <div class="settings-desc" style="margin-top: 8px;">Click to generate</div>
                     </div>
                     <div class="stat-card" onclick="generateReport('full')" style="cursor: pointer;">
-                        <div class="number yellow">📊</div>
+                        <div class="number yellow"><i class="fas fa-chart-bar"></i></div>
                         <div class="label">Full Report</div>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Click to generate</div>
+                        <div class="settings-desc" style="margin-top: 8px;">Click to generate</div>
                     </div>
                 </div>
-                <pre id="reportData" style="color: var(--text-secondary); font-family: monospace; white-space: pre-wrap; background: var(--bg-primary); padding: 16px; border-radius: var(--radius-sm); margin-top: 16px; display: none;"></pre>
+                <pre id="reportData" class="report-output"></pre>
                 <button class="btn btn-primary" onclick="switchPage('dashboard')" style="margin-top: 16px;">
                     <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </button>
@@ -798,30 +264,57 @@
 
             <!-- ===== PROFILE PAGE ===== -->
             <div class="page-container" id="profilePage">
-                <h3>👤 My Profile</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 600px;">
-                    <div class="stat-card">
-                        <div class="label" style="font-size: 12px; color: var(--text-muted);">Full Name</div>
-                        <div style="font-size: 18px; font-weight: 600;" id="profileFullName">Loading...</div>
+                <h3><i class="fas fa-user"></i> My Profile</h3>
+                <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;">
+                    <div style="text-align:center;">
+                        <div id="profilePhotoDisplay" style="width:120px;height:120px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:900;color:var(--accent);overflow:hidden;border:3px solid var(--accent);">
+                            <span id="profilePhotoInitial">U</span>
+                            <img id="profilePhotoImg" src="" alt="Profile" style="width:100%;height:100%;object-fit:cover;display:none;">
+                        </div>
+                        <form id="photoUploadForm" style="margin-top:12px;">
+                            <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="uploadPhoto()">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('photoInput').click()">
+                                <i class="fas fa-camera"></i> Change Photo
+                            </button>
+                        </form>
+                        <div id="photoMessage" style="font-size:12px;margin-top:6px;"></div>
                     </div>
-                    <div class="stat-card">
-                        <div class="label" style="font-size: 12px; color: var(--text-muted);">Username</div>
-                        <div style="font-size: 18px; font-weight: 600;" id="profileUsername">Loading...</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="label" style="font-size: 12px; color: var(--text-muted);">Email</div>
-                        <div style="font-size: 18px; font-weight: 600;" id="profileEmail">Loading...</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="label" style="font-size: 12px; color: var(--text-muted);">Role</div>
-                        <div style="font-size: 18px; font-weight: 600;" id="profileRole">Loading...</div>
-                    </div>
-                    <div class="stat-card" style="grid-column: span 2;">
-                        <div class="label" style="font-size: 12px; color: var(--text-muted);">Total Attendance</div>
-                        <div style="font-size: 18px; font-weight: 600;" id="profileAttendance">0%</div>
-                        <div class="progress-bar"><div class="fill fill-high" id="profileProgressBar" style="width: 0%;"></div></div>
+                    <div style="flex:1;min-width:300px;">
+                        <div class="profile-grid">
+                            <div class="stat-card">
+                                <div class="label profile-label">Full Name</div>
+                                <div class="profile-value" id="profileFullName">Loading...</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="label profile-label">Username</div>
+                                <div class="profile-value" id="profileUsername">Loading...</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="label profile-label">Email</div>
+                                <div class="profile-value" id="profileEmail">Loading...</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="label profile-label">Role</div>
+                                <div class="profile-value" id="profileRole">Loading...</div>
+                            </div>
+                            <div class="stat-card profile-full">
+                                <div class="label profile-label">Total Attendance</div>
+                                <div class="profile-value" id="profileAttendance">0%</div>
+                                <div class="progress-bar"><div class="fill fill-high" id="profileProgressBar" style="width: 0%;"></div></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Exam Eligibility -->
+                <div style="margin-top:24px;">
+                    <h3 style="margin-bottom:12px;"><i class="fas fa-graduation-cap"></i> Exam Eligibility</h3>
+                    <p class="subtitle">60%+ late or 23%+ absent = blocked from mid/final exams</p>
+                    <div id="eligibilityContainer">
+                        <div class="loading"><div class="spinner"></div> Checking eligibility...</div>
+                    </div>
+                </div>
+
                 <button class="btn btn-primary" onclick="switchPage('dashboard')" style="margin-top: 16px;">
                     <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </button>
@@ -829,46 +322,46 @@
 
             <!-- ===== SETTINGS PAGE ===== -->
             <div class="page-container" id="settingsPage">
-                <h3>⚙️ Settings</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 16px;">System settings and preferences</p>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                <h3><i class="fas fa-cog"></i> Settings</h3>
+                <p class="subtitle">System settings and preferences</p>
+                <div class="settings-grid">
                     <div class="stat-card" onclick="toggleTheme()" style="cursor: pointer;">
-                        <div style="font-size: 24px;">🎨</div>
-                        <div class="label" style="font-size: 14px; font-weight: 600; margin-top: 8px;">Theme Settings</div>
-                        <div style="font-size: 12px; color: var(--text-muted);">
+                        <div class="settings-icon"><i class="fas fa-palette"></i></div>
+                        <div class="label settings-title">Theme Settings</div>
+                        <div class="settings-desc">
                             <span id="studentThemeLabel">Dark Mode</span>
                         </div>
-                        <div style="margin-top: 10px;">
+                        <div class="settings-actions">
                             <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); toggleTheme();">
                                 <i class="fas fa-moon" id="studentSettingsThemeIcon"></i> Toggle Theme
                             </button>
                         </div>
                     </div>
                     <div class="stat-card" onclick="showNotification('User profile loaded', 'success')" style="cursor: pointer;">
-                        <div style="font-size: 24px;">👤</div>
-                        <div class="label" style="font-size: 14px; font-weight: 600; margin-top: 8px;">My Profile</div>
-                        <div style="font-size: 12px; color: var(--text-muted);">View profile details</div>
-                        <div style="margin-top: 10px;">
+                        <div class="settings-icon"><i class="fas fa-user"></i></div>
+                        <div class="label settings-title">My Profile</div>
+                        <div class="settings-desc">View profile details</div>
+                        <div class="settings-actions">
                             <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); switchPage('profile');">
                                 <i class="fas fa-user"></i> View Profile
                             </button>
                         </div>
                     </div>
                     <div class="stat-card" onclick="showNotification('System info: v1.0.0', 'info')" style="cursor: pointer;">
-                        <div style="font-size: 24px;">ℹ️</div>
-                        <div class="label" style="font-size: 14px; font-weight: 600; margin-top: 8px;">System Info</div>
-                        <div style="font-size: 12px; color: var(--text-muted);">Version, logs</div>
-                        <div style="margin-top: 10px;">
+                        <div class="settings-icon"><i class="fas fa-info-circle"></i></div>
+                        <div class="label settings-title">System Info</div>
+                        <div class="settings-desc">Version, logs</div>
+                        <div class="settings-actions">
                             <button class="btn btn-info btn-sm" onclick="event.stopPropagation(); showNotification('System Info: v1.0.0', 'info');">
                                 <i class="fas fa-info-circle"></i> View Info
                             </button>
                         </div>
                     </div>
                     <div class="stat-card" style="cursor: pointer;">
-                        <div style="font-size: 24px;">🔑</div>
-                        <div class="label" style="font-size: 14px; font-weight: 600; margin-top: 8px;">Change Password</div>
-                        <div style="font-size: 12px; color: var(--text-muted);">Update your login password</div>
-                        <div style="margin-top: 10px;">
+                        <div class="settings-icon">🔑</div>
+                        <div class="label settings-title">Change Password</div>
+                        <div class="settings-desc">Update your login password</div>
+                        <div class="settings-actions">
                             <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openChangePasswordModal();">
                                 <i class="fas fa-key"></i> Change Password
                             </button>
@@ -901,12 +394,168 @@
         document.getElementById('userName').textContent = user.full_name || 'Student';
         document.getElementById('studentName').textContent = user.full_name || 'Student';
         document.getElementById('userAvatar').textContent = (user.full_name || 'S').charAt(0).toUpperCase();
+        if (user.profile_photo) {
+            document.getElementById('userAvatar').innerHTML = `<img src="/uploads/photos/${user.profile_photo}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+        }
 
         // Profile data
         document.getElementById('profileFullName').textContent = user.full_name || 'N/A';
         document.getElementById('profileUsername').textContent = user.username || 'N/A';
         document.getElementById('profileEmail').textContent = user.email || 'N/A';
         document.getElementById('profileRole').textContent = user.role ? user.role.toUpperCase() : 'N/A';
+        document.getElementById('profilePhotoInitial').textContent = (user.full_name || 'U').charAt(0).toUpperCase();
+
+        // Load profile photo
+        if (user.profile_photo) {
+            document.getElementById('profilePhotoImg').src = `/uploads/photos/${user.profile_photo}`;
+            document.getElementById('profilePhotoImg').style.display = 'block';
+            document.getElementById('profilePhotoInitial').style.display = 'none';
+        }
+
+        // Fetch fresh profile from server (updates profile_photo if it was missing from localStorage)
+        async function refreshProfile() {
+            try {
+                const res = await fetch(`${API_URL}/users/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success && data.user) {
+                    const fresh = data.user;
+                    let changed = false;
+                    if (fresh.profile_photo && fresh.profile_photo !== user.profile_photo) {
+                        user.profile_photo = fresh.profile_photo;
+                        changed = true;
+                    }
+                    if (fresh.full_name && fresh.full_name !== user.full_name) {
+                        user.full_name = fresh.full_name;
+                        changed = true;
+                    }
+                    if (fresh.email && fresh.email !== user.email) {
+                        user.email = fresh.email;
+                        changed = true;
+                    }
+                    if (changed) {
+                        localStorage.setItem('user', JSON.stringify(user));
+                        if (fresh.profile_photo) {
+                            const photoUrl = `/uploads/photos/${fresh.profile_photo}`;
+                            document.getElementById('userAvatar').innerHTML = `<img src="${photoUrl}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                            document.getElementById('profilePhotoImg').src = photoUrl;
+                            document.getElementById('profilePhotoImg').style.display = 'block';
+                            document.getElementById('profilePhotoInitial').style.display = 'none';
+                        }
+                        if (fresh.full_name) {
+                            document.getElementById('userName').textContent = fresh.full_name;
+                            document.getElementById('studentName').textContent = fresh.full_name;
+                            document.getElementById('profileFullName').textContent = fresh.full_name;
+                        }
+                        if (fresh.email) document.getElementById('profileEmail').textContent = fresh.email;
+                    }
+                }
+            } catch (e) {}
+        }
+        refreshProfile();
+
+        // ===== PHOTO UPLOAD =====
+        async function uploadPhoto() {
+            const fileInput = document.getElementById('photoInput');
+            const msgDiv = document.getElementById('photoMessage');
+            if (!fileInput.files.length) return;
+
+            const formData = new FormData();
+            formData.append('photo', fileInput.files[0]);
+
+            try {
+                msgDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+                msgDiv.style.color = 'var(--muted)';
+                const res = await fetch(`${API_URL}/users/upload-photo`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const newPhoto = data.photo.profile_photo;
+                    const photoUrl = `/uploads/photos/${newPhoto}`;
+                    document.getElementById('profilePhotoImg').src = photoUrl;
+                    document.getElementById('profilePhotoImg').style.display = 'block';
+                    document.getElementById('profilePhotoInitial').style.display = 'none';
+                    user.profile_photo = newPhoto;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    const avatarEl = document.getElementById('userAvatar');
+                    if (avatarEl) avatarEl.innerHTML = `<img src="${photoUrl}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+                    msgDiv.innerHTML = '<i class="fas fa-check"></i> Photo updated!';
+                    msgDiv.style.color = 'var(--accent)';
+                } else {
+                    msgDiv.innerHTML = '<i class="fas fa-times"></i> ' + data.message;
+                    msgDiv.style.color = 'var(--danger)';
+                }
+            } catch (err) {
+                msgDiv.innerHTML = '<i class="fas fa-times"></i> Upload failed';
+                msgDiv.style.color = 'var(--danger)';
+            }
+        }
+
+        // ===== EXAM ELIGIBILITY =====
+        async function loadExamEligibility() {
+            const container = document.getElementById('eligibilityContainer');
+            try {
+                const res = await fetch(`${API_URL}/users/${user.id}/eligibility`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!data.success || !data.eligibility.length) {
+                    container.innerHTML = '<div class="empty"><span class="icon">📋</span>No attendance data yet</div>';
+                    return;
+                }
+
+                let html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;">';
+                data.eligibility.forEach(e => {
+                    const eligible = e.eligible_for_exam;
+                    const borderColor = eligible ? 'var(--accent)' : 'var(--danger)';
+                    const bgColor = eligible ? 'var(--accent-bg)' : 'var(--danger-bg)';
+                    const textColor = eligible ? 'var(--accent)' : 'var(--danger)';
+                    const icon = eligible ? 'fa-check-circle' : 'fa-times-circle';
+                    const label = eligible ? 'ELIGIBLE' : 'NOT ELIGIBLE';
+
+                    html += `
+                        <div style="border:1px solid ${borderColor};border-radius:var(--radius);padding:16px;background:${bgColor};">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <strong style="font-size:14px;">${e.course_name} (${e.section})</strong>
+                                <span style="font-size:12px;font-weight:800;color:${textColor};display:flex;align-items:center;gap:4px;">
+                                    <i class="fas ${icon}"></i> ${label}
+                                </span>
+                            </div>
+                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px;">
+                                <div>
+                                    <div style="color:var(--muted);font-weight:700;">Late</div>
+                                    <div style="font-weight:900;color:${e.late_percent >= 60 ? 'var(--danger)' : 'var(--text)'};">${e.late_percent}%</div>
+                                </div>
+                                <div>
+                                    <div style="color:var(--muted);font-weight:700;">Absent</div>
+                                    <div style="font-weight:900;color:${e.absent_percent > 23 ? 'var(--danger)' : 'var(--text)'};">${e.absent_percent}%</div>
+                                </div>
+                                <div>
+                                    <div style="color:var(--muted);font-weight:700;">Attendance</div>
+                                    <div style="font-weight:900;">${e.attendance_percent}%</div>
+                                </div>
+                            </div>
+                            <div style="margin-top:8px;font-size:11px;color:var(--muted);">
+                                ${e.total_classes} total classes | ${e.present_count} present | ${e.late_count} late | ${e.absent_count} absent
+                            </div>
+                            ${!eligible ? `<div style="margin-top:8px;font-size:11px;color:${textColor};font-weight:700;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                ${e.late_percent >= 60 ? '60%+ late — blocked from mid/final exam' : ''}
+                                ${e.absent_percent > 23 ? 'Over 23% absent — blocked from mid/final exam' : ''}
+                            </div>` : ''}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = '<div class="empty"><span class="icon">❌</span>Error loading eligibility</div>';
+            }
+        }
 
         if (!token || !user.id) {
             window.location.href = 'login.html';
@@ -1017,6 +666,9 @@
             } else if (page === 'attendance') {
                 document.getElementById('attendanceTable').classList.add('active');
                 loadAttendance();
+            } else if (page === 'scan') {
+                document.getElementById('scanPage').classList.add('active');
+                loadScanClasses();
             } else if (page === 'schedule') {
                 document.getElementById('schedulePage').classList.add('active');
                 loadSchedule();
@@ -1024,6 +676,7 @@
                 document.getElementById('reportsPage').classList.add('active');
             } else if (page === 'profile') {
                 document.getElementById('profilePage').classList.add('active');
+                loadExamEligibility();
             } else if (page === 'settings') {
                 document.getElementById('settingsPage').classList.add('active');
             }
@@ -1053,6 +706,37 @@
             await loadAttendance();
             updateStats();
             updateBadges();
+            loadEligibilityAlert();
+        }
+
+        // ===== ELIGIBILITY ALERT ON DASHBOARD =====
+        async function loadEligibilityAlert() {
+            const alert = document.getElementById('eligibilityAlert');
+            try {
+                const res = await fetch(`${API_URL}/users/${user.id}/eligibility`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!data.success || !data.eligibility.length) return;
+
+                const blocked = data.eligibility.filter(e => !e.eligible_for_exam);
+                if (blocked.length > 0) {
+                    alert.style.display = 'flex';
+                    alert.style.background = 'var(--danger-bg)';
+                    alert.style.borderColor = 'var(--danger)';
+                    alert.style.color = 'var(--danger)';
+                    const courses = blocked.map(e => e.course_name).join(', ');
+                    alert.innerHTML = `<i class="fas fa-exclamation-triangle"></i> <span><strong>Exam Blocked:</strong> You are not eligible for mid/final exams in: ${courses}</span>`;
+                } else {
+                    alert.style.display = 'flex';
+                    alert.style.background = 'var(--accent-bg)';
+                    alert.style.borderColor = 'var(--accent)';
+                    alert.style.color = 'var(--accent)';
+                    alert.innerHTML = `<i class="fas fa-check-circle"></i> <span><strong>Exam Eligible:</strong> You are eligible for all mid/final exams</span>`;
+                }
+            } catch (err) {
+                // Silently fail - alert just won't show
+            }
         }
 
         // ===== LOAD COURSES =====
@@ -1237,48 +921,6 @@
             document.getElementById('attendanceBadge').textContent = studentAttendance.length || 0;
         }
 
-        // ===== LOAD SCHEDULE =====
-        async function loadSchedule() {
-            const container = document.getElementById('scheduleContainer');
-            container.innerHTML = '<div class="loading"><div class="spinner"></div> Loading schedule...</div>';
-
-            try {
-                if (!studentCourses.length) {
-                    await loadCourses();
-                }
-
-                const scheduleItems = studentCourses.flatMap(course => {
-                    const schedule = Array.isArray(course.schedule) ? course.schedule : [];
-                    return schedule.map(item => ({ ...item, course }));
-                }).filter(item => item.day || item.start_time || item.end_time);
-
-                if (scheduleItems.length === 0) {
-                    container.innerHTML = '<div class="empty"><span class="icon">📅</span>No schedule records found</div>';
-                    return;
-                }
-
-                let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">';
-                scheduleItems.forEach(item => {
-                    const course = item.course;
-                    const time = [item.start_time, item.end_time].filter(Boolean).join(' - ') || 'Time not set';
-                    html += `
-                        <div class="course-card">
-                            <div style="font-weight: 700; color: var(--primary);">${item.day || 'Day not set'}</div>
-                            <div style="font-size: 13px; color: var(--text-secondary);">${time}</div>
-                            <div style="font-size: 12px; color: var(--text-muted);">${course.course_name || course.name || 'Course'}</div>
-                            <div style="font-size: 12px; color: var(--text-muted);">${item.room || ''}</div>
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                container.innerHTML = html;
-
-            } catch (error) {
-                console.error('Error loading schedule:', error);
-                container.innerHTML = '<div class="empty"><span class="icon">❌</span>Error loading schedule</div>';
-            }
-        }
-
         // ===== SECTION A SCHEDULE TABLE =====
         async function loadSchedule() {
             const container = document.getElementById('scheduleContainer');
@@ -1383,17 +1025,8 @@
         function showNotification(message, type = 'info') {
             const colors = { success: '#22C55E', error: '#EF4444', warning: '#F59E0B', info: '#4F46E5' };
             const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed; bottom: 24px; right: 24px; padding: 14px 24px;
-                background: var(--bg-card); border: 1px solid var(--border-color);
-                border-left: 4px solid ${colors[type] || '#4F46E5'};
-                border-radius: 10px; color: var(--text-primary);
-                font-size: 14px; font-weight: 500;
-                box-shadow: var(--shadow-lg); z-index: 9999;
-                animation: slideUp 0.3s ease; max-width: 400px;
-                backdrop-filter: blur(12px);
-                transition: all 0.3s ease;
-            `;
+            notification.className = 'notification-toast';
+            notification.style.borderLeftColor = colors[type] || '#4F46E5';
             const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
             notification.innerHTML = `${icons[type] || 'ℹ️'} ${message}`;
             document.body.appendChild(notification);
@@ -1457,6 +1090,104 @@
             }
         });
 
+        // ===== STUDENT QR CHECK-IN =====
+        async function loadScanClasses() {
+            try {
+                const data = await fetchAPI(`/users/${user.id}/courses`);
+                const select = document.getElementById('scanClassSelect');
+                select.innerHTML = '<option value="">Select Class</option>';
+                if (data.success && data.courses) {
+                    data.courses.forEach(c => {
+                        select.innerHTML += `<option value="${c.id}">${c.course_code || c.name || 'Class'} - ${c.section || ''}</option>`;
+                    });
+                }
+            } catch (e) {}
+        }
+
+        async function studentCheckIn() {
+            const classId = document.getElementById('scanClassSelect').value;
+            const code = document.getElementById('scanCodeInput').value.trim().toUpperCase();
+            const resultDiv = document.getElementById('scanResult');
+            const locationDiv = document.getElementById('scanLocationStatus');
+            const btn = document.getElementById('scanCheckInBtn');
+
+            if (!classId) { showNotification('❌ Please select a class', 'error'); return; }
+            if (!code || code.length < 4) { showNotification('❌ Please enter the QR code', 'error'); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking in...';
+            resultDiv.style.display = 'none';
+
+            locationDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Detecting your location...';
+            locationDiv.style.background = 'var(--bg-secondary)';
+            locationDiv.style.borderColor = 'var(--border-color)';
+            locationDiv.style.color = 'var(--text-muted)';
+
+            const sendCheckIn = async (lat, lng) => {
+                try {
+                    const body = { class_id: parseInt(classId), code };
+                    if (lat != null && lng != null) {
+                        body.latitude = lat;
+                        body.longitude = lng;
+                    }
+                    const res = await fetch(`${API_URL}/qr/checkin`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify(body)
+                    });
+                    const data = await res.json();
+                    resultDiv.style.display = 'block';
+                    if (data.success) {
+                        resultDiv.style.background = 'var(--accent-bg, #d4edda)';
+                        resultDiv.style.color = 'var(--accent, #22C55E)';
+                        resultDiv.style.border = '1px solid var(--accent, #22C55E)';
+                        resultDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+                        document.getElementById('scanCodeInput').value = '';
+                    } else {
+                        resultDiv.style.background = 'var(--danger-bg, #f8d7da)';
+                        resultDiv.style.color = 'var(--danger, #EF4444)';
+                        resultDiv.style.border = '1px solid var(--danger, #EF4444)';
+                        resultDiv.innerHTML = '<i class="fas fa-times-circle"></i> ' + data.message;
+                    }
+                } catch (err) {
+                    resultDiv.style.display = 'block';
+                    resultDiv.style.background = 'var(--danger-bg, #f8d7da)';
+                    resultDiv.style.color = 'var(--danger, #EF4444)';
+                    resultDiv.style.border = '1px solid var(--danger, #EF4444)';
+                    resultDiv.innerHTML = '<i class="fas fa-times-circle"></i> Failed to check in';
+                }
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Check In';
+            };
+
+            if (!navigator.geolocation) {
+                locationDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:var(--warning);"></i> GPS not available, submitting without location';
+                locationDiv.style.color = 'var(--warning)';
+                sendCheckIn(null, null);
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    locationDiv.innerHTML = '<i class="fas fa-check-circle" style="color:var(--accent);"></i> Location detected (' + lat.toFixed(4) + ', ' + lng.toFixed(4) + ')';
+                    locationDiv.style.background = 'var(--accent-bg, #d4edda)';
+                    locationDiv.style.borderColor = 'var(--accent, #22C55E)';
+                    locationDiv.style.color = 'var(--accent, #22C55E)';
+                    sendCheckIn(lat, lng);
+                },
+                (err) => {
+                    locationDiv.innerHTML = '<i class="fas fa-times-circle" style="color:var(--danger);"></i> ' + err.message + ' - submitting without location';
+                    locationDiv.style.background = 'var(--danger-bg, #f8d7da)';
+                    locationDiv.style.borderColor = 'var(--danger, #EF4444)';
+                    locationDiv.style.color = 'var(--danger, #EF4444)';
+                    sendCheckIn(null, null);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
+
         // ===== INIT =====
         loadData();
 
@@ -1474,20 +1205,20 @@
             <form id="changePasswordForm">
                 <div class="form-group" style="margin-bottom:14px;">
                     <label>Current Password</label>
-                    <input type="password" id="cpCurrentPassword" placeholder="Enter current password" required style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary);">
+                    <input type="password" id="cpCurrentPassword" placeholder="Enter current password" required>
                 </div>
                 <div class="form-group" style="margin-bottom:14px;">
                     <label>New Password</label>
-                    <input type="password" id="cpNewPassword" placeholder="Min 6 characters" required minlength="6" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary);">
+                    <input type="password" id="cpNewPassword" placeholder="Min 6 characters" required minlength="6">
                 </div>
                 <div class="form-group" style="margin-bottom:14px;">
                     <label>Confirm New Password</label>
-                    <input type="password" id="cpConfirmPassword" placeholder="Confirm new password" required style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary);">
+                    <input type="password" id="cpConfirmPassword" placeholder="Confirm new password" required>
                 </div>
                 <div id="changePasswordResult" style="margin-bottom:10px;"></div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-outline" onclick="closeChangePasswordModal()" style="padding:10px 20px;border-radius:8px;">Cancel</button>
-                    <button type="submit" class="btn btn-primary" style="padding:10px 20px;border-radius:8px;">Update Password</button>
+                    <button type="button" class="btn btn-outline" onclick="closeChangePasswordModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Password</button>
                 </div>
             </form>
         </div>

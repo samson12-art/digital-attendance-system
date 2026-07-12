@@ -11,6 +11,10 @@ const classRoutes = require('./routes/classRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const exportRoutes = require('./routes/exportRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const qrRoutes = require('./routes/qrRoutes');
+const bulkRoutes = require('./routes/bulkRoutes');
 
 const app = express();
 
@@ -41,6 +45,7 @@ app.use('/api', rateLimit({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../../frontend')));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use((req, res, next) => {
     writeLog(`${req.method} ${req.url}`);
@@ -61,6 +66,10 @@ app.use('/api/classes', classRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/export', exportRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/qr', qrRoutes);
+app.use('/api/bulk', bulkRoutes);
 
 app.use((req, res) => {
     res.status(404).json({ success: false, message: 'Route not found' });
